@@ -49,7 +49,17 @@
     let cmpData  = null;
 
     // ─── AUTH STATE ────────────────────────────────────────────────────────────
+    // Esperar a que Firebase confirme la sesión antes de redirigir
+    let resolved = false;
+    const timeout = setTimeout(() => {
+      if (!resolved) window.location.href = "index.html";
+    }, 5000);
+
     onAuthStateChanged(auth, async user => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timeout);
+
       if (user) {
         currentUser = user;
         const ref = doc(db, "users", user.uid);
@@ -60,20 +70,21 @@
         } else {
           userData = snap.data();
         }
-        // Si ya tiene plan, ir directo a la app
         if (userData.plan && userData.plan !== "") {
           showScreen("app");
         } else {
           showScreen("pricing");
         }
       } else {
-        // No logueado — volver a la landing
         window.location.href = "index.html";
       }
     });
 
     // ─── SCREENS ───────────────────────────────────────────────────────────────
     function showScreen(name) {
+      // Ocultar loading
+      const loading = document.getElementById("screen-loading");
+      if (loading) loading.style.display = "none";
       ["auth","pricing","app"].forEach(s => {
         document.getElementById("screen-"+s).style.display = s===name ? "block" : "none";
       });
@@ -582,6 +593,13 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCREEN: AUTH
 ═══════════════════════════════════════════════════════════ -->
+<!-- LOADING -->
+<div id="screen-loading" style="position:fixed;inset:0;background:#0c0e17;display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:14px;font-family:'Open Sans',sans-serif">
+  <div style="width:36px;height:36px;border:3px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite"></div>
+  <div style="font-size:13px;color:#5a6075">Verificando sesión...</div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+
 <div id="screen-auth" style="display:none">
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
     <div style="width:100%;max-width:420px">
