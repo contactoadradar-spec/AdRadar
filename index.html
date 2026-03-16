@@ -295,7 +295,7 @@
 // Evita el parpadeo de carga esperando a Firebase
 (function(){
   try {
-    const cached = localStorage.getItem("ar_user");
+    const cached = localStorage.getItem("ar_session");
     if (cached) {
       // Usuario probablemente logueado — ocultar loading de inmediato
       document.getElementById("page-loading").style.display = "none";
@@ -667,134 +667,145 @@
 
 <!-- ═══ FIREBASE ═══ -->
 <script type="module">
-  import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup,
-           createUserWithEmailAndPassword, signInWithEmailAndPassword,
-           signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, onAuthStateChanged, browserLocalPersistence, setPersistence
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const FB = {
+  const app  = initializeApp({
     apiKey:"AIzaSyClJrnZT8hamQTipTQUYMNbXPjRpYRMINc",
     authDomain:"adradar-a337d.firebaseapp.com",
     projectId:"adradar-a337d",
     storageBucket:"adradar-a337d.firebasestorage.app",
     messagingSenderId:"156988772524",
     appId:"1:156988772524:web:7d13766b75632ab3d8cf09"
-  };
+  });
 
-  const app  = initializeApp(FB);
   const auth = getAuth(app);
   const db   = getFirestore(app);
   const gp   = new GoogleAuthProvider();
 
-  // ── State ──
-  window._user     = null;
-  window._userData = null;
+  // Persistencia permanente — el usuario queda logueado aunque cierre el navegador
+  await setPersistence(auth, browserLocalPersistence);
+
+  window._user        = null;
+  window._userData    = null;
   window._userLoggedIn = false;
 
-  // ── Auth state listener ──
+  // ── Cargar datos de usuario desde Firestore ──
+  async function loadUser(user) {
+    const ref  = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      const data = { plan:"free", queries:0, email:user.email, name:user.displayName||user.email };
+      await setDoc(ref, data);
+      return data;
+    }
+    return snap.data();
+  }
+
+  // ── Auth state — se dispara al cargar y en cada cambio de sesión ──
   onAuthStateChanged(auth, async (user) => {
-    const loading = document.getElementById("page-loading");
-
     if (user) {
-      window._user = user;
+      window._user         = user;
       window._userLoggedIn = true;
+      try { localStorage.setItem("ar_session", "1"); } catch(e) {}
 
-      // Save minimal cache so next load is instant
-      try { localStorage.setItem("ar_user", "1"); } catch(e) {}
+      window._userData = await loadUser(user);
 
-      // Load or create user doc
-      const ref  = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        window._userData = { plan:"free", queries:0, email:user.email, name:user.displayName||user.email };
-        await setDoc(ref, window._userData);
-      } else {
-        window._userData = snap.data();
-      }
-
-      // Show app UI (may already be showing from cache — just update data)
-      loading.style.display = "none";
+      document.getElementById("page-loading").style.display = "none";
       showNavApp();
       showApp();
 
     } else {
-      window._user = null;
-      window._userData = null;
+      window._user         = null;
+      window._userData     = null;
       window._userLoggedIn = false;
+      try { localStorage.removeItem("ar_session"); } catch(e) {}
 
-      // Clear cache
-      try { localStorage.removeItem("ar_user"); } catch(e) {}
-
-      // Show landing
-      loading.style.display = "none";
+      document.getElementById("page-loading").style.display = "none";
+      document.getElementById("navbar").style.display        = "flex";
       showNavLanding();
-      document.getElementById("page-landing").style.display = "block";
-      document.getElementById("page-app").style.display = "none";
-      document.getElementById("page-pricing").style.display = "none";
-      document.getElementById("navbar").style.display = "flex";
+      document.getElementById("page-landing").style.display  = "block";
+      document.getElementById("page-app").style.display      = "none";
+      document.getElementById("page-pricing").style.display  = "none";
     }
   });
 
-  // ── Google Login ──
+  // ── Login con Google ──
   window.doGoogleLogin = async () => {
-    setModalLoading(true);
+    setModalBtn("loading");
+    hideErr();
     try {
       await signInWithPopup(auth, gp);
-      closeModal();
+      setModalBtn("success");
+      setTimeout(() => closeModal(), 600);
     } catch(e) {
-      showErr(e.code === "auth/unauthorized-domain"
-        ? "Dominio no autorizado. Ve a Firebase Console > Authentication > Authorized domains y agrega este dominio."
-        : e.message);
-      setModalLoading(false);
+      const msgs = {
+        "auth/popup-closed-by-user": "Cerraste la ventana de Google. Intenta de nuevo.",
+        "auth/unauthorized-domain":  "Dominio no autorizado. Agrega adradar.cl en Firebase > Authentication > Authorized domains.",
+        "auth/cancelled-popup-request": "Operación cancelada.",
+      };
+      showErr(msgs[e.code] || e.message);
+      setModalBtn("idle");
     }
   };
 
-  // ── Email Auth ──
+  // ── Login / Registro con email ──
   window.doEmailAuth = async () => {
     const isReg = document.getElementById("mt-reg").classList.contains("on");
     const name  = document.getElementById("m-name").value.trim();
     const email = document.getElementById("m-email").value.trim();
     const pass  = document.getElementById("m-pass").value;
-    if (!email || !pass) { showErr("Completa email y contraseña."); return; }
-    if (isReg && !name) { showErr("Escribe tu nombre."); return; }
-    setModalLoading(true);
+
+    hideErr();
+    if (!email)       { showErr("Escribe tu email.");         return; }
+    if (!pass)        { showErr("Escribe tu contraseña.");    return; }
+    if (pass.length < 6) { showErr("La contraseña debe tener al menos 6 caracteres."); return; }
+    if (isReg && !name) { showErr("Escribe tu nombre.");      return; }
+
+    setModalBtn("loading");
     try {
       if (isReg) {
         await createUserWithEmailAndPassword(auth, email, pass);
       } else {
         await signInWithEmailAndPassword(auth, email, pass);
       }
-      closeModal();
+      setModalBtn("success");
+      setTimeout(() => closeModal(), 600);
     } catch(e) {
       const msgs = {
-        "auth/email-already-in-use":"Este email ya tiene cuenta. Inicia sesión.",
-        "auth/weak-password":"La contraseña debe tener al menos 6 caracteres.",
-        "auth/user-not-found":"No encontramos esa cuenta.",
-        "auth/wrong-password":"Contraseña incorrecta.",
-        "auth/invalid-credential":"Email o contraseña incorrectos.",
-        "auth/invalid-email":"Email inválido."
+        "auth/email-already-in-use": "Este email ya tiene cuenta. Haz clic en Iniciar sesión.",
+        "auth/weak-password":        "La contraseña debe tener al menos 6 caracteres.",
+        "auth/user-not-found":       "No encontramos esa cuenta.",
+        "auth/wrong-password":       "Contraseña incorrecta.",
+        "auth/invalid-credential":   "Email o contraseña incorrectos.",
+        "auth/invalid-email":        "El email no es válido.",
+        "auth/too-many-requests":    "Demasiados intentos. Espera unos minutos.",
       };
       showErr(msgs[e.code] || e.message);
-      setModalLoading(false);
+      setModalBtn("idle");
     }
   };
 
   // ── Logout ──
   window.doLogout = async () => {
+    try { localStorage.removeItem("ar_session"); } catch(e) {}
     await signOut(auth);
   };
 
-  // ── Update plan ──
+  // ── Guardar plan ──
   window.savePlan = async (planId) => {
     if (!window._user) return;
     window._userData.plan = planId;
     await updateDoc(doc(db, "users", window._user.uid), { plan: planId });
   };
 
-  // ── Update queries ──
+  // ── Guardar consulta ──
   window.saveQuery = async () => {
     if (!window._user) return;
     const q = (window._userData.queries || 0) + 1;
@@ -803,18 +814,38 @@
     updateQueriesUI();
   };
 
-  function setModalLoading(v) {
-    const b = document.getElementById("m-submit");
-    const g = document.getElementById("btn-google");
+  // ── UI helpers del modal ──
+  function setModalBtn(state) {
+    const btn  = document.getElementById("m-submit");
+    const gbtn = document.getElementById("btn-google");
     const isReg = document.getElementById("mt-reg").classList.contains("on");
-    b.innerHTML = v ? '<div class="mspinner"></div>' : (isReg ? "Crear cuenta gratis" : "Iniciar sesión");
-    g.disabled = v;
+    const label = isReg ? "Crear cuenta gratis" : "Iniciar sesión";
+
+    if (state === "loading") {
+      btn.innerHTML  = '<div class="mspinner"></div> Verificando...';
+      btn.disabled   = true;
+      gbtn.disabled  = true;
+      gbtn.style.opacity = ".5";
+    } else if (state === "success") {
+      btn.innerHTML  = '✓ Entrando...';
+      btn.style.background = "#3ecf8e";
+      btn.disabled   = true;
+    } else {
+      btn.innerHTML  = label;
+      btn.disabled   = false;
+      gbtn.disabled  = false;
+      gbtn.style.opacity = "1";
+    }
   }
 
   function showErr(msg) {
-    const e = document.getElementById("merr");
-    e.textContent = msg;
-    e.style.display = "block";
+    const el = document.getElementById("merr");
+    el.textContent  = msg;
+    el.style.display = "block";
+  }
+
+  function hideErr() {
+    document.getElementById("merr").style.display = "none";
   }
 </script>
 
@@ -903,16 +934,36 @@ window.openModal = (m) => {
 };
 window.closeModal = () => {
   document.getElementById("modal").classList.remove("open");
-  document.getElementById("merr").style.display = "none";
+  document.getElementById("merr").style.display  = "none";
+  // Reset button states
+  const btn  = document.getElementById("m-submit");
+  const isReg = document.getElementById("mt-reg").classList.contains("on");
+  btn.innerHTML        = isReg ? "Crear cuenta gratis" : "Iniciar sesión";
+  btn.disabled         = false;
+  btn.style.background = "";
+  const gbtn = document.getElementById("btn-google");
+  gbtn.disabled      = false;
+  gbtn.style.opacity = "1";
 };
 window.switchModal = (m) => {
   const r = m === "register";
   document.getElementById("mt-reg").classList.toggle("on", r);
   document.getElementById("mt-log").classList.toggle("on", !r);
-  document.getElementById("f-name").style.display = r ? "block" : "none";
-  document.getElementById("m-submit").textContent = r ? "Crear cuenta gratis" : "Iniciar sesión";
-  document.getElementById("modal-tag").textContent = r ? "Crea tu cuenta gratis y empieza a analizar" : "Bienvenido de vuelta a AdRadar";
-  document.getElementById("merr").style.display = "none";
+  document.getElementById("f-name").style.display       = r ? "block" : "none";
+  document.getElementById("modal-tag").textContent      = r ? "Crea tu cuenta gratis y empieza a analizar" : "Bienvenido de vuelta a AdRadar";
+  document.getElementById("merr").style.display         = "none";
+  // Reset submit button
+  const btn = document.getElementById("m-submit");
+  btn.textContent      = r ? "Crear cuenta gratis" : "Iniciar sesión";
+  btn.disabled         = false;
+  btn.style.background = "";
+  // Reset google btn
+  const gbtn = document.getElementById("btn-google");
+  gbtn.disabled      = false;
+  gbtn.style.opacity = "1";
+  // Clear fields
+  document.getElementById("m-pass").value  = "";
+  if (r) document.getElementById("m-name").value = "";
 };
 
 // ── Hamburger ──
