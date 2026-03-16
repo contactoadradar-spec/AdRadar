@@ -607,7 +607,7 @@
       <h1 class="app-title">Analizar competencia</h1>
       <p class="app-sub" id="app-sub">Escribe el nombre de tu marca y un competidor para ver el análisis completo.</p>
       <div class="search-card">
-        <div id="compare-block">
+        <div id="compare-block" style="display:none">
           <div class="vs-grid">
             <div>
               <label class="field-label" style="color:var(--accent)">Tu marca</label>
@@ -620,11 +620,11 @@
             </div>
           </div>
         </div>
-        <div id="solo-block" style="display:none;margin-bottom:14px">
+        <div id="solo-block" style="display:block;margin-bottom:14px">
           <label class="field-label">Marca a analizar</label>
           <input class="field-input" id="input-solo" placeholder="Escribe el nombre de la empresa..."/>
         </div>
-        <div id="upgrade-note" class="upgrade-note">
+        <div id="upgrade-note" class="upgrade-note" style="display:flex">
           <span>Actualiza a Premium para comparar tu marca vs competencia</span>
           <button onclick="showPricing()">Ver planes</button>
         </div>
@@ -645,10 +645,7 @@
           <div>
             <label class="field-label">Período</label>
             <select class="field-input" id="input-period">
-              <option value="1m">1 mes</option>
-              <option value="3m">3 meses</option>
-              <option value="6m" selected>6 meses</option>
-              <option value="12m">1 año</option>
+              <option value="1m" selected>1 mes</option>
             </select>
           </div>
         </div>
@@ -985,18 +982,18 @@ function setupAppForPlan() {
   const soloBlock    = document.getElementById("solo-block");
   const upgradeNote  = document.getElementById("upgrade-note");
   const planId       = window._userData?.plan || "free";
+  const isPremium    = planId === "business";
+  const isEmprendedor = planId === "pro";
 
-  if (planId === "business") {
-    // Premium: show compare (Tu marca vs Competidor)
-    compareBlock.style.display = "block";
-    soloBlock.style.display    = "none";
-    upgradeNote.style.display  = "none";
-  } else {
-    // Gratis / Emprendedor: show solo input only
-    compareBlock.style.display = "none";
-    soloBlock.style.display    = "block";
-    upgradeNote.style.display  = "flex";
-  }
+  // Compare block: SOLO Premium
+  compareBlock.style.display = isPremium ? "block" : "none";
+  // Solo block: Gratis + Emprendedor
+  soloBlock.style.display    = isPremium ? "none" : "block";
+  // Upgrade note: Gratis + Emprendedor
+  upgradeNote.style.display  = isPremium ? "none" : "flex";
+  // Upgrade note text
+  const unSpan = upgradeNote?.querySelector("span");
+  if (unSpan) unSpan.textContent = "Actualiza a Premium para comparar tu marca vs competencia";
 
   // Period selector — only show allowed periods
   const periodSel = document.getElementById("input-period");
