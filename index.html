@@ -624,7 +624,7 @@
           <input class="field-input" id="input-solo" placeholder="Escribe el nombre de la empresa..."/>
         </div>
         <div id="upgrade-note" class="upgrade-note">
-          <span>Actualiza a Business para comparar tu marca vs competencia</span>
+          <span>Actualiza a Premium para comparar tu marca vs competencia</span>
           <button onclick="showPricing()">Ver planes</button>
         </div>
         <div class="row2">
@@ -976,19 +976,22 @@ function setupAppForPlan() {
   document.getElementById("app-title").textContent = plan.searchTitle;
   document.getElementById("app-sub").textContent   = plan.searchSub;
 
-  // Show/hide compare vs solo block
+  // Show/hide compare vs solo block — ONLY Premium (business) gets compare
   const compareBlock = document.getElementById("compare-block");
   const soloBlock    = document.getElementById("solo-block");
   const upgradeNote  = document.getElementById("upgrade-note");
-  if (plan.compare) {
+  const planId       = window._userData?.plan || "free";
+
+  if (planId === "business") {
+    // Premium: show compare (Tu marca vs Competidor)
     compareBlock.style.display = "block";
     soloBlock.style.display    = "none";
     upgradeNote.style.display  = "none";
   } else {
-    // Non-compare plans: hide compare block, show solo input
+    // Gratis / Emprendedor: show solo input only
     compareBlock.style.display = "none";
     soloBlock.style.display    = "block";
-    upgradeNote.style.display  = "flex";  // always show upgrade note for non-business plans
+    upgradeNote.style.display  = "flex";
   }
 
   // Period selector — only show allowed periods
