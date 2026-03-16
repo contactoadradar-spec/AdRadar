@@ -264,6 +264,28 @@
     .mfine a{color:var(--accent)}
     .mspinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
 
+    /* PageSpeed */
+    .speed-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .speed-box{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+    .speed-score{font-size:32px;font-weight:800;line-height:1}
+    .speed-label{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+    .speed-bar-wrap{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:8px;overflow:hidden}
+    .speed-bar{height:100%;border-radius:3px;transition:width 1s ease}
+    /* Social profiles */
+    .social-grid{display:flex;flex-wrap:wrap;gap:8px}
+    .social-chip{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--border);background:rgba(255,255,255,0.03);text-decoration:none;color:var(--text);transition:all .2s}
+    .social-chip:hover{border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.06)}
+    .social-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    /* Monitor toggle */
+    .monitor-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(79,127,255,0.04);border:1px solid rgba(79,127,255,0.12);border-radius:8px;margin-bottom:8px}
+    .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:11px;cursor:pointer;transition:.3s}
+    .toggle-slider::before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+    .toggle input:checked + .toggle-slider{background:var(--accent)}
+    .toggle input:checked + .toggle-slider::before{transform:translateX(18px)}
+    /* Offer pill */
+    .offer-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:rgba(245,101,101,0.1);border:1px solid rgba(245,101,101,0.2);border-radius:20px;font-size:11px;font-weight:700;color:var(--red)}
     /* Responsive */
     @media(max-width:860px){
       .pgrid,.tgrid,.pgrid2,.steps-row,.price-grid{grid-template-columns:1fr}
@@ -1152,6 +1174,17 @@ window.startSearch = async () => {
     document.getElementById("app-results").style.display  = "block";
     document.getElementById("app-results").scrollIntoView({behavior:"smooth"});
 
+    // Save results for async use (PageSpeed URL lookup)
+    window._lastResults = window._lastResults || {};
+    if (myData) window._lastResults[myData.nombre] = myData;
+
+    // Start async loaders for Pro/Business
+    const _plan = PLANS[window._userData?.plan || "free"];
+    if (_plan.full) {
+      setTimeout(() => loadPageSpeed(myData.nombre), 500);
+      setTimeout(() => loadSocialProfiles(myData.nombre), 800);
+    }
+
   } catch(e) {
     document.getElementById("app-loading").style.display = "none";
     document.getElementById("app-search").style.display  = "block";
@@ -1179,9 +1212,9 @@ async function callAI(name, countryCode, period) {
   const body = {
     model:"claude-sonnet-4-20250514",
     max_tokens:6000,
-    messages:[{role:"user",content:`Analiza "${name}" en ${countryName} durante ${periodLabel} desde marketing digital. SOLO JSON sin texto ni backticks:
-{"nombre":"nombre","industria":"sector","descripcion":"1 línea","mensaje_principal":"slogan","tono":"cómo comunican","propuesta_valor":"diferenciador","nivel_actividad":"alto o medio o bajo","tendencia":"creciendo o estable o decreciendo","score_marca":7.5,"share_voz":28,"fortalezas":["f1","f2","f3"],"debilidades":["d1","d2"],"canales":[{"canal":"nombre","intensidad":8,"tipo":"pagado o organico o mixto","pct":30}],"inversion":[{"plataforma":"nombre","pct":30,"tipo":"pagado o organico o mixto","tendencia":"subiendo o estable o bajando"}],"keywords":[{"palabra":"kw","tipo":"marca o producto o emocion o promocion","volumen":"alto o medio o bajo"}],"campanas":[{"nombre":"campaña","plataforma":"plataforma","descripcion":"descripción","activo":true}],"alianzas":[{"partner":"nombre","tipo":"influencer o marca o medio","impacto":"alto o medio o bajo"}],"sentimiento":{"positivo":65,"neutral":20,"negativo":15,"resumen":"percepción"}}
-5 canales, 8 keywords, 5 plataformas de inversión sumando 100, 3 campañas, 3 alianzas. Solo JSON.`}]
+    messages:[{role:"user",content:`Analiza "${name}" en ${countryName} durante ${periodLabel} desde marketing digital. Busca información actualizada. SOLO JSON sin texto ni backticks:
+{"nombre":"nombre","website":"https://...","industria":"sector","descripcion":"1 línea","mensaje_principal":"slogan","tono":"cómo comunican","propuesta_valor":"diferenciador","nivel_actividad":"alto o medio o bajo","tendencia":"creciendo o estable o decreciendo","score_marca":7.5,"share_voz":28,"fortalezas":["f1","f2","f3"],"debilidades":["d1","d2"],"canales":[{"canal":"nombre","intensidad":8,"tipo":"pagado o organico o mixto","pct":30}],"inversion":[{"plataforma":"nombre","pct":30,"tipo":"pagado o organico o mixto","tendencia":"subiendo o estable o bajando"}],"keywords":[{"palabra":"kw","tipo":"marca o producto o emocion o promocion o categoria","volumen":"alto o medio o bajo"}],"campanas":[{"nombre":"campaña","plataforma":"plataforma","descripcion":"descripción","activo":true}],"alianzas":[{"partner":"nombre","tipo":"influencer o marca o medio","impacto":"alto o medio o bajo"}],"sentimiento":{"positivo":65,"neutral":20,"negativo":15,"resumen":"percepción"},"top_keywords_seo":["kw1","kw2","kw3","kw4","kw5"]}
+5 canales, 10 keywords, 5 plataformas de inversión sumando 100, 3 campañas, 3 alianzas, 5 keywords SEO. Solo JSON.`}]
   };
   const res  = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
   if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message || `Error ${res.status}`); }
@@ -1216,9 +1249,11 @@ function renderResults(my, comp, cmp, plan, country, period) {
   const cpN  = comp?.nombre || "";
   const kwColors = {marca:"#4f7fff",producto:"#7b61ff",emocion:"#e84393",promocion:"#c8a96e",categoria:"#3ecf8e"};
 
-  const tabs = plan.compare && cmp
-    ? [["overview","Resumen"],["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"],["brechas","Brechas"],["plan","Plan de acción"]]
-    : [["overview","Resumen"],["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"]];
+  const isPro = plan.full;
+  const baseTabs = [["overview","Resumen"]];
+  if (isPro) baseTabs.push(["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"],["web","Web & SEO"],["social","Perfiles sociales"]);
+  if (plan.compare && cmp) baseTabs.push(["brechas","Brechas"],["plan","Plan de acción"]);
+  const tabs = baseTabs;
 
   const tabsHTML = tabs.map((t,i) =>
     `<button class="rtab${i===0?" on":""}" data-tab="${t[0]}" onclick="switchTab('${t[0]}')">${t[1]}</button>`
@@ -1386,7 +1421,91 @@ function renderResults(my, comp, cmp, plan, country, period) {
     }).join("")}
   `;
 
-  const panels = {overview:overviewHTML,canales:canalesHTML,keywords:keywordsHTML,campanas:campanasHTML,brechas:brechasHTML,plan:planHTML};
+
+  // Web & SEO tab — loads PageSpeed async after render
+  const webHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea análisis de velocidad web y SEO.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" id="speed-card-${myN.replace(/\s/g,'_')}">
+      <div class="card-title">Velocidad y SEO de la web</div>
+      <div style="text-align:center;padding:24px 0;color:var(--muted);font-size:13px" id="speed-loading-${myN.replace(/\s/g,'_')}">
+        <div style="width:20px;height:20px;border:2px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
+        Analizando velocidad de carga...
+      </div>
+      <div id="speed-result-${myN.replace(/\s/g,'_')}" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Palabras clave SEO estimadas</div>
+      <div class="kw-cloud">
+        ${(my.keywords||[]).filter(k=>k.tipo==="producto"||k.tipo==="categoria").map(kw=>`
+          <span class="kw" style="padding:5px 12px;background:rgba(79,127,255,0.08);border:1px solid rgba(79,127,255,0.15);color:#7fa6ff;font-size:12px">${kw.palabra}</span>
+        `).join("")}
+        ${(my.keywords||[]).filter(k=>k.tipo==="marca").map(kw=>`
+          <span class="kw" style="padding:5px 12px;background:rgba(200,169,110,0.08);border:1px solid rgba(200,169,110,0.15);color:#c8a96e;font-size:12px">${kw.palabra}</span>
+        `).join("")}
+      </div>
+    </div>
+    ${my.sentimiento ? `
+    <div class="card">
+      <div class="card-title">Sentimiento público de marca</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1;background:rgba(62,207,142,0.08);border:1px solid rgba(62,207,142,0.15);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:#3ecf8e">${my.sentimiento.positivo}%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Positivo</div>
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--soft)">${my.sentimiento.neutral}%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Neutral</div>
+        </div>
+        <div style="flex:1;background:rgba(245,101,101,0.08);border:1px solid rgba(245,101,101,0.15);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:#f56565">${my.sentimiento.negativo}%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Negativo</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:6px">${my.sentimiento.resumen}</div>
+    </div>` : ""}
+    <div class="card">
+      <div class="card-title">Monitor de cambios web</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Activa el monitoreo para recibir alertas cuando este sitio cambie su contenido o lance promociones.</p>
+      <div class="monitor-row">
+        <div>
+          <div style="font-size:13px;font-weight:600">Monitorear sitio web</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Revisión diaria + alerta por email si hay cambios</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" onchange="toggleMonitor(this, '${my.nombre}')"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  `;
+
+  // Social profiles tab — loads async
+  const brandKey = myN.replace(/\s/g,'_');
+  const socialHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea búsqueda de perfiles sociales.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card">
+      <div class="card-title">Perfiles sociales detectados</div>
+      <div id="social-loading-${brandKey}" style="text-align:center;padding:24px 0;color:var(--muted);font-size:13px">
+        <div style="width:20px;height:20px;border:2px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
+        Buscando perfiles...
+      </div>
+      <div id="social-result-${brandKey}" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Presencia en plataformas (estimada por IA)</div>
+      <div class="social-grid">
+        ${(my.canales||[]).map(ch=>{
+          const colors = {instagram:"#e1306c",facebook:"#1877f2",tiktok:"#69c9d0",youtube:"#f00",google:"#fbbc04",linkedin:"#0077b5",twitter:"#1da1f2"};
+          const c = colors[ch.canal?.toLowerCase()] || "var(--accent)";
+          return `<div class="social-chip" style="border-color:${c}22;background:${c}08">
+            <div class="social-dot" style="background:${c}"></div>
+            <span>${ch.canal}</span>
+            <span style="color:${c};font-size:10px">${ch.tipo}</span>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+
+  const panels = {overview:overviewHTML,canales:canalesHTML,keywords:keywordsHTML,campanas:campanasHTML,web:webHTML,social:socialHTML,brechas:brechasHTML,plan:planHTML};
 
   const panelsHTML = tabs.map((t,i) =>
     `<div class="rpanel${i===0?" on":""}" id="rp-${t[0]}">${panels[t[0]]||""}</div>`
@@ -1412,6 +1531,122 @@ function renderResults(my, comp, cmp, plan, country, period) {
     ${panelsHTML}
   `;
 }
+
+// ── Async loaders called after results render ──
+window._pendingLoaders = [];
+
+function loadPageSpeed(brand) {
+  const brandKey = brand.replace(/\s/g, "_");
+  const loading  = document.getElementById("speed-loading-" + brandKey);
+  const result   = document.getElementById("speed-result-"  + brandKey);
+  if (!loading || !result) return;
+
+  // Try to find the website URL from AI data (stored in window._lastResults)
+  const website = window._lastResults?.[brand]?.website || "";
+  const url = website || ("https://www." + brand.toLowerCase().replace(/\s/g,"-") + ".com");
+
+  fetch("/api/pagespeed?url=" + encodeURIComponent(url))
+    .then(r => r.json())
+    .then(data => {
+      loading.style.display = "none";
+      result.style.display  = "block";
+      if (data.error) {
+        result.innerHTML = `<div style="color:var(--muted);font-size:13px">No se pudo analizar: ${data.error}</div>`;
+        return;
+      }
+      const c = data.color || "#4f7fff";
+      result.innerHTML = `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:36px;font-weight:800;color:${c}">${data.score}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:${c}">${data.label}</div>
+              <div style="font-size:11px;color:var(--muted)">Score de rendimiento móvil</div>
+            </div>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden">
+            <div style="width:${data.score}%;height:100%;background:${c};border-radius:4px;transition:width 1s ease"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--text)">${data.lcp}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">LCP (carga principal)</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--text)">${data.tbt}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">TBT (interactividad)</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--text)">${data.cls}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">CLS (estabilidad)</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--muted)">SEO score</span>
+          <span style="font-size:13px;font-weight:700;color:${data.seo>=80?"#3ecf8e":"#c8a96e"}">${data.seo}/100</span>
+        </div>
+      `;
+    })
+    .catch(() => {
+      if (loading) loading.innerHTML = '<div style="font-size:13px;color:var(--muted)">No se pudo cargar PageSpeed.</div>';
+    });
+}
+
+function loadSocialProfiles(brand) {
+  const brandKey = brand.replace(/\s/g, "_");
+  const loading  = document.getElementById("social-loading-" + brandKey);
+  const result   = document.getElementById("social-result-"  + brandKey);
+  if (!loading || !result) return;
+
+  fetch("/api/social?brand=" + encodeURIComponent(brand))
+    .then(r => r.json())
+    .then(data => {
+      loading.style.display = "none";
+      result.style.display  = "block";
+      if (data.error || data.found === 0) {
+        result.innerHTML = `<div style="color:var(--muted);font-size:13px">No se encontraron perfiles públicos verificados.</div>`;
+        return;
+      }
+      const netColors = {instagram:"#e1306c",facebook:"#1877f2",tiktok:"#69c9d0",linkedin:"#0077b5",twitter:"#1da1f2"};
+      const netNames  = {instagram:"Instagram",facebook:"Facebook",tiktok:"TikTok",linkedin:"LinkedIn",twitter:"X / Twitter"};
+      result.innerHTML = Object.entries(data.profiles).map(([net, p]) => {
+        const c = netColors[net] || "var(--accent)";
+        return `<a href="${p.url}" target="_blank" rel="noopener" class="social-chip" style="border-color:${c}33;background:${c}0a">
+          <div class="social-dot" style="background:${c}"></div>
+          <span>${netNames[net]||net}</span>
+          <span style="color:${c};opacity:.8">@${p.handle}</span>
+        </a>`;
+      }).join("");
+    })
+    .catch(() => {
+      if (loading) loading.innerHTML = `<div style="font-size:13px;color:var(--muted)">No se pudo cargar perfiles.</div>`;
+    });
+}
+
+// Monitor toggle
+window.toggleMonitor = async (checkbox, brand) => {
+  if (!window._user) return;
+  const email = window._userData?.email || "";
+  const url   = "https://www." + brand.toLowerCase().replace(/\s/g,"-") + ".com";
+  if (checkbox.checked) {
+    try {
+      await fetch("/api/monitor", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ url, uid: window._user.uid, email })
+      });
+      // Show confirmation
+      const row = checkbox.closest(".monitor-row");
+      if (row) {
+        const msg = document.createElement("div");
+        msg.style.cssText = "font-size:11px;color:#3ecf8e;margin-top:8px;padding:6px 12px;background:rgba(62,207,142,0.08);border-radius:6px";
+        msg.textContent   = "Monitor activado. Recibirás alertas en " + email;
+        row.after(msg);
+      }
+    } catch(e) { console.error(e); }
+  }
+};
 
 window.switchTab = (name) => {
   document.querySelectorAll(".rtab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
