@@ -456,7 +456,7 @@
           <button class="pbtn sec" onclick="openModal('register')">Comenzar gratis</button>
         </div>
         <div class="pcol hl">
-          <div class="ptier" style="color:var(--accent)">Pro</div>
+          <div class="ptier" style="color:var(--accent)">Emprendedor</div>
           <div class="pamt" style="color:var(--accent)"><sup>$</sup>15</div>
           <div class="pper">USD por mes</div>
           <p class="pdesc">Análisis completo de cualquier marca.</p>
@@ -471,11 +471,11 @@
             <div class="pf no"><span>—</span> Comparativa tu marca vs competencia</div>
             <div class="pf no"><span>—</span> Plan de acción personalizado</div>
           </div>
-          <button class="pbtn pri" onclick="openModal('register')">Contratar Pro — $15/mes</button>
+          <button class="pbtn pri" onclick="openModal('register')">Contratar Emprendedor — $15/mes</button>
         </div>
         <div class="pcol hl" style="border-top:1px solid rgba(200,169,110,0.2)">
           <div class="pbadge">Más popular</div>
-          <div class="ptier" style="color:var(--accent2)">Business</div>
+          <div class="ptier" style="color:var(--accent2)">Premium</div>
           <div class="pamt" style="color:var(--accent2)"><sup>$</sup>25</div>
           <div class="pper">USD por mes</div>
           <p class="pdesc">Comparativa completa y plan de acción.</p>
@@ -489,7 +489,7 @@
             <div class="pf ok"><span style="color:var(--accent2)">—</span> Share of voice comparado</div>
             <div class="pf ok"><span style="color:var(--accent2)">—</span> Consultas ilimitadas</div>
           </div>
-          <button class="pbtn gld" onclick="openModal('register')">Contratar Business — $25/mes</button>
+          <button class="pbtn gld" onclick="openModal('register')">Contratar Premium — $25/mes</button>
         </div>
       </div>
       <p style="margin-top:16px;font-size:12px;color:var(--muted)">Pagos con Stripe — Cancela cuando quieras — Sin contratos</p>
@@ -558,7 +558,7 @@
         <button class="pbtn sec" onclick="selectPlan('free')">Continuar gratis</button>
       </div>
       <div class="pcol hl" style="border:2px solid rgba(79,127,255,0.3);border-radius:12px">
-        <div class="ptier" style="color:var(--accent)">Pro</div>
+        <div class="ptier" style="color:var(--accent)">Emprendedor</div>
         <div class="pamt" style="color:var(--accent)"><sup>$</sup>15</div>
         <div class="pper">USD/mes</div>
         <p class="pdesc">Análisis completo de cualquier marca.</p>
@@ -573,11 +573,11 @@
           <div class="pf no"><span>—</span> Comparativa tu marca vs competencia</div>
           <div class="pf no"><span>—</span> Plan de acción personalizado</div>
         </div>
-        <button class="pbtn pri" onclick="selectPlan('pro')" id="btn-plan-pro">Comenzar por $15/mes →</button>
+        <button class="pbtn pri" onclick="selectPlan('pro')" id="btn-plan-pro">Contratar Emprendedor — $15/mes</button>
       </div>
       <div class="pcol hl" style="border:2px solid rgba(200,169,110,0.3);border-radius:12px">
         <div class="pbadge">Más popular</div>
-        <div class="ptier" style="color:var(--accent2)">Business</div>
+        <div class="ptier" style="color:var(--accent2)">Premium</div>
         <div class="pamt" style="color:var(--accent2)"><sup>$</sup>25</div>
         <div class="pper">USD/mes</div>
         <p class="pdesc">Comparativa completa + plan de acción.</p>
@@ -591,7 +591,7 @@
           <div class="pf ok"><span style="color:var(--accent2)">—</span> Share of voice comparado</div>
           <div class="pf ok"><span style="color:var(--accent2)">—</span> Consultas ilimitadas</div>
         </div>
-        <button class="pbtn gld" onclick="selectPlan('business')" id="btn-plan-business">Comenzar por $25/mes →</button>
+        <button class="pbtn gld" onclick="selectPlan('business')" id="btn-plan-business">Contratar Premium — $25/mes</button>
       </div>
     </div>
     <p style="margin-top:20px;font-size:12px;color:var(--muted)">Pagos con Stripe · Cancela cuando quieras</p>
@@ -659,6 +659,10 @@
           </div>
         </div>
       </div>
+
+      <!-- Plan features bar -->
+      <div id="plan-features-bar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px"></div>
+
     </div>
 
     <!-- Loading -->
@@ -891,30 +895,33 @@
 <script>
 const PLANS = {
   free: {
-    name:"FREE", color:"#6b7280", queries:3, compare:false, full:false,
-    periods:["1m"],                    // solo 1 mes
+    name:"GRATIS", color:"#6b7280", queries:3, compare:false, full:false,
+    maxBrands:1, updateFreq:"semana", seeAds:false, aiAdvice:false,
+    periods:["1m"],
     stripeLink: null,
     label:"Gratis",
     searchTitle:"Analiza una marca de tu competencia",
-    searchSub:"Escribe el nombre de cualquier empresa y ve un resumen de su presencia digital.",
+    searchSub:"Obtén un resumen básico de presencia digital. Actualizado semanalmente.",
     examples:[["Falabella"],["Nike"],["Coca-Cola"],["Entel"],["Banco de Chile"]]
   },
   pro: {
-    name:"PRO", color:"#4f7fff", queries:15, compare:false, full:true,
-    periods:["1m","3m","6m"],          // hasta 6 meses
+    name:"EMPRENDEDOR", color:"#4f7fff", queries:15, compare:false, full:true,
+    maxBrands:5, updateFreq:"dia", seeAds:false, aiAdvice:false,
+    periods:["1m","3m","6m"],
     stripeLink: "https://buy.stripe.com/test_REEMPLAZA_PRO",
-    label:"Pro — $15/mes",
-    searchTitle:"Análisis completo de tu competencia",
-    searchSub:"Elige una empresa y obtén canales, inversión, keywords, campañas y alianzas.",
+    label:"Emprendedor — $15/mes",
+    searchTitle:"Análisis completo — hasta 5 competidores",
+    searchSub:"Canales, inversión, keywords, campañas y alertas al día siguiente.",
     examples:[["Falabella"],["Nike"],["Coca-Cola"],["Entel"],["Banco de Chile"]]
   },
   business: {
-    name:"BUSINESS", color:"#c8a96e", queries:9999, compare:true, full:true,
-    periods:["1m","3m","6m","12m"],    // hasta 1 año
+    name:"PREMIUM", color:"#c8a96e", queries:9999, compare:true, full:true,
+    maxBrands:999, updateFreq:"instante", seeAds:true, aiAdvice:true,
+    periods:["1m","3m","6m","12m"],
     stripeLink: "https://buy.stripe.com/test_REEMPLAZA_BUSINESS",
-    label:"Business — $25/mes",
+    label:"Premium — $25/mes",
     searchTitle:"Compara tu marca vs la competencia",
-    searchSub:"Escribe tu marca y un competidor. La IA analiza ambos y te dice qué hacer para ganar.",
+    searchSub:"Comparativa directa, anuncios activos, estrategias IA y alertas al instante.",
     examples:[["Falabella","Ripley"],["Entel","Movistar"],["Nike","Adidas"],["Coca-Cola","Pepsi"]]
   }
 };
@@ -941,10 +948,15 @@ function updateQueriesUI() {
   document.getElementById("plan-dot").style.background = plan.color;
   document.getElementById("plan-name").textContent = plan.name;
   document.getElementById("plan-name").style.color = plan.color;
-  const q = window._userData.queries || 0;
+  const q   = window._userData.queries || 0;
   const lim = plan.queries;
-  document.getElementById("queries-count").textContent = lim === 9999 ? "∞ consultas" : `${q}/${lim} consultas`;
+  document.getElementById("queries-count").textContent = lim === 9999 ? "Consultas ilimitadas" : `${q}/${lim} consultas`;
   document.getElementById("user-avatar").textContent = (window._userData.name || window._userData.email || "U")[0].toUpperCase();
+  // Update app subtitle with plan capabilities
+  const subEl = document.getElementById("app-sub");
+  if (subEl) subEl.textContent = plan.searchSub;
+  const titleEl = document.getElementById("app-title");
+  if (titleEl) titleEl.textContent = plan.searchTitle;
 }
 function showApp() {
   document.getElementById("page-landing").style.display = "none";
@@ -1006,6 +1018,27 @@ function setupAppForPlan() {
     }
     chipsEl.appendChild(sp);
   });
+
+  // Plan features badge bar
+  const badgeEl = document.getElementById("plan-features-bar");
+  if (badgeEl) {
+    const features = [
+      { label: "Competidores", val: plan.maxBrands >= 999 ? "Ilimitados" : plan.maxBrands === 1 ? "1" : plan.maxBrands, ok: true },
+      { label: "Actualización", val: plan.updateFreq === "instante" ? "Instantánea" : plan.updateFreq === "dia" ? "Al día siguiente" : "Semanal", ok: plan.updateFreq !== "semana" },
+      { label: "Ver anuncios", val: plan.seeAds ? "Incluido" : "No incluido", ok: plan.seeAds },
+      { label: "Comparativa vs ti", val: plan.compare ? "Incluida" : "No incluida", ok: plan.compare },
+      { label: "Estrategias IA", val: plan.aiAdvice ? "Incluidas" : "No incluidas", ok: plan.aiAdvice },
+    ];
+    badgeEl.innerHTML = features.map(f => `
+      <div style="display:flex;flex-direction:column;gap:3px;padding:8px 12px;border-radius:8px;background:${f.ok?"rgba(62,207,142,0.06)":"rgba(255,255,255,0.03)"};border:1px solid ${f.ok?"rgba(62,207,142,0.15)":"var(--border)"}">
+        <span style="font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase">${f.label}</span>
+        <span style="font-size:12px;font-weight:700;color:${f.ok?"#3ecf8e":"var(--muted)"}">${f.val}</span>
+      </div>
+    `).join("");
+    // Show upgrade note only if not premium
+    const upNote = document.getElementById("upgrade-note");
+    if (upNote) upNote.style.display = (!plan.compare) ? "flex" : "none";
+  }
 }
 
 // ── Plan selection ──
@@ -1388,7 +1421,25 @@ function renderResults(my, comp, cmp, plan, country, period) {
       <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:6px;border-left:2px solid rgba(255,255,255,0.08)">${my.sentimiento.resumen}</div>
     </div>` : ""}
 
-    ${!plan.full ? `<div class="lock-box"><h3>Desbloquea el análisis completo</h3><p>Canales, inversión, keywords, campañas y más con el plan Pro.</p><button class="btn-primary" onclick="showPricing()">Ver planes — desde $15/mes</button></div>` : ""}
+    ${!plan.full ? `<div class="lock-box"><h3>Desbloquea el análisis completo</h3><p>Canales, inversión, keywords, campañas y más con el plan Emprendedor.</p><button class="btn-primary" onclick="showPricing()">Ver planes — desde $15/mes</button></div>` : ""}
+
+    ${plan.full && !plan.aiAdvice ? `
+    <div style="padding:16px;background:rgba(200,169,110,0.06);border:1px solid rgba(200,169,110,0.2);border-radius:10px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#c8a96e;margin-bottom:3px">Estrategias y consejos IA disponibles en Premium</div>
+        <div style="font-size:12px;color:var(--muted)">Detección de cambios de estrategia, benchmarking de contenido y recomendaciones personalizadas.</div>
+      </div>
+      <button class="btn-primary" style="background:var(--accent2);color:#0a0b0f;white-space:nowrap;padding:9px 16px;font-size:12px" onclick="showPricing()">Ver Premium</button>
+    </div>` : ""}
+
+    ${plan.full && !plan.seeAds ? `
+    <div style="padding:16px;background:rgba(79,127,255,0.05);border:1px solid rgba(79,127,255,0.15);border-radius:10px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#7fa6ff;margin-bottom:3px">Galería de anuncios activos disponible en Premium</div>
+        <div style="font-size:12px;color:var(--muted)">Ve los creativos reales que está usando tu competencia en Meta y Google Ads ahora mismo.</div>
+      </div>
+      <button class="btn-primary" style="white-space:nowrap;padding:9px 16px;font-size:12px" onclick="showPricing()">Ver Premium</button>
+    </div>` : ""}
   `;
 
   // ── Canales panel ──
