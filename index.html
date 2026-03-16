@@ -314,21 +314,22 @@
 
 <script>
 // Mostrar inmediatamente la pantalla correcta según caché local
-// Evita el parpadeo de carga esperando a Firebase
 (function(){
   try {
     const cached = localStorage.getItem("ar_session");
     if (cached) {
-      // Usuario probablemente logueado — ocultar loading de inmediato
+      // Sesión activa — mostrar app directamente, NUNCA pricing
       document.getElementById("page-loading").style.display = "none";
-      document.getElementById("navbar").style.display = "flex";
-      document.getElementById("nav-r").style.display = "none";
-      document.getElementById("app-nav").style.display = "flex";
-      document.getElementById("page-app").style.display = "block";
+      document.getElementById("navbar").style.display       = "flex";
+      document.getElementById("nav-r").style.display        = "none";
+      document.getElementById("app-nav").style.display      = "flex";
+      document.getElementById("page-app").style.display     = "block";
+      document.getElementById("page-pricing").style.display = "none";
+      document.getElementById("page-landing").style.display = "none";
     } else {
-      // No hay sesión cacheada — mostrar landing de inmediato
+      // Sin sesión — mostrar landing
       document.getElementById("page-loading").style.display = "none";
-      document.getElementById("navbar").style.display = "flex";
+      document.getElementById("navbar").style.display       = "flex";
       document.getElementById("page-landing").style.display = "block";
     }
   } catch(e) {}
@@ -759,7 +760,10 @@
 
       window._userData = await loadUser(user);
 
-      document.getElementById("page-loading").style.display = "none";
+      // Siempre ir a la app — el plan gratis es el default para nuevos usuarios
+      // NUNCA redirigir a pricing automáticamente
+      document.getElementById("page-loading").style.display  = "none";
+      document.getElementById("page-pricing").style.display  = "none";
       showNavApp();
       showApp();
 
