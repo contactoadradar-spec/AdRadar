@@ -1245,286 +1245,460 @@ async function callComparison(my, comp, country) {
 
 // ── Render results ──
 function renderResults(my, comp, cmp, plan, country, period) {
-  const myN  = my.nombre;
-  const cpN  = comp?.nombre || "";
-  const kwColors = {marca:"#4f7fff",producto:"#7b61ff",emocion:"#e84393",promocion:"#c8a96e",categoria:"#3ecf8e"};
+  const myN = my.nombre;
+  const cpN = comp?.nombre || "";
 
-  const isPro = plan.full;
-  const baseTabs = [["overview","Resumen"]];
-  if (isPro) baseTabs.push(["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"],["web","Web & SEO"],["social","Perfiles sociales"]);
-  if (plan.compare && cmp) baseTabs.push(["brechas","Brechas"],["plan","Plan de acción"]);
+  const isPro     = plan.full;
+  const isBiz     = plan.compare;
+  const baseTabs  = [["overview","Resumen"]];
+  if (isPro) baseTabs.push(["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"],["web","Web & SEO"],["social","Perfiles"]);
+  if (isBiz && cmp) baseTabs.push(["brechas","Brechas"],["plan","Plan de acción"]);
   const tabs = baseTabs;
 
   const tabsHTML = tabs.map((t,i) =>
     `<button class="rtab${i===0?" on":""}" data-tab="${t[0]}" onclick="switchTab('${t[0]}')">${t[1]}</button>`
   ).join("");
 
-  // Overview
+  // ── Score ring SVG ──
+  function scoreRing(score, color, label, sub) {
+    const r = 42, cx = 52, cy = 52, circ = 2*Math.PI*r;
+    const dash = (score/10)*circ;
+    return `<div style="text-align:center">
+      <svg width="104" height="104" viewBox="0 0 104 104">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+          stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round"
+          style="transition:stroke-dasharray 1.2s ease"/>
+        <text x="${cx}" y="${cy-4}" text-anchor="middle" fill="${color}" font-size="18" font-weight="800" font-family="Open Sans,sans-serif">${score}</text>
+        <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9" font-family="Open Sans,sans-serif">/10</text>
+      </svg>
+      <div style="font-size:13px;font-weight:700;color:${color};margin-top:-4px">${label}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${sub}</div>
+    </div>`;
+  }
+
+  // ── Bar chart ──
+  function barChart(items, valKey, labelKey, colorKey) {
+    const max = Math.max(...items.map(i => i[valKey]||0), 1);
+    return items.map(i => {
+      const w   = Math.round((i[valKey]/max)*100);
+      const col = colorKey ? (i[colorKey]||"#4f7fff") : "#4f7fff";
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--soft)">${i[labelKey]}</span>
+          <span style="font-size:12px;font-weight:700;color:${col}">${i[valKey]}${valKey==="pct"||valKey==="intensidad"?"":""}</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+          <div style="width:${w}%;height:100%;background:${col};border-radius:3px;transition:width 1s ease"></div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // ── Platform colors ──
+  const platColors = {instagram:"#e1306c",facebook:"#1877f2",tiktok:"#69c9d0",youtube:"#ff0000","google ads":"#fbbc04",linkedin:"#0077b5",twitter:"#1da1f2",x:"#1da1f2",spotify:"#1db954",pinterest:"#e60023"};
+  function platColor(name) { return platColors[name?.toLowerCase()] || "#4f7fff"; }
+
+  // ── Overview panel ──
+  const tendColor = my.tendencia==="creciendo"?"#3ecf8e":my.tendencia==="decreciendo"?"#f56565":"#c8a96e";
+  const tendIcon  = my.tendencia==="creciendo"?"↑":my.tendencia==="decreciendo"?"↓":"→";
+
   const overviewHTML = `
-    <div class="card">
-      <div class="card-title">Mensaje principal</div>
-      <div style="font-size:15px;font-weight:700;border-left:3px solid var(--accent);padding-left:12px;line-height:1.5">"${my.mensaje_principal}"</div>
-      <div style="margin-top:10px;font-size:13px;color:var(--muted)">${my.propuesta_valor}</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="card" style="border-top:3px solid var(--green)">
-        <div class="card-title" style="color:var(--green)">Fortalezas</div>
-        ${(my.fortalezas||[]).map(f=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--green);flex-shrink:0">→</span><span style="font-size:13px;color:#d1d5db">${f}</span></div>`).join("")}
-      </div>
-      <div class="card" style="border-top:3px solid var(--red)">
-        <div class="card-title" style="color:var(--red)">Debilidades</div>
-        ${(my.debilidades||[]).map(f=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--red);flex-shrink:0">→</span><span style="font-size:13px;color:#d1d5db">${f}</span></div>`).join("")}
-      </div>
-    </div>
-    ${cmp && comp ? `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
-      <div class="card" style="border-top:3px solid var(--accent);background:rgba(79,127,255,0.04)">
-        <div class="card-title" style="color:var(--accent)">${myN} lidera en</div>
-        ${(cmp.yo_gano_en||[]).map(v=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--accent)">→</span><span style="font-size:13px;color:#d1d5db">${v}</span></div>`).join("")}
-      </div>
-      <div class="card" style="border-top:3px solid var(--accent2);background:rgba(200,169,110,0.04)">
-        <div class="card-title" style="color:var(--accent2)">${cpN} lidera en</div>
-        ${(cmp.ellos_ganan_en||[]).map(v=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--accent2)">→</span><span style="font-size:13px;color:#d1d5db">${v}</span></div>`).join("")}
-      </div>
-    </div>` : ""}
-    ${!plan.full ? `<div class="lock-box"><h3>Análisis completo en plan Pro</h3><p>Desbloquea canales, inversión, keywords y campañas detalladas.</p><button class="btn-primary" onclick="showPricing()">Ver planes — desde $15/mes</button></div>` : ""}
-  `;
-
-  // Canales
-  const canalesHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea el análisis completo de canales e inversión.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
-    <div class="card">
-      <div class="card-title">Inversión por plataforma</div>
-      ${(my.inversion||[]).map(p=>`
-        <div class="bar-row">
-          <div class="bar-name">${p.plataforma}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%;background:var(--accent)"></div></div>
-          <div class="bar-pct" style="color:var(--accent)">${p.pct}%</div>
-          <span class="badge" style="margin-left:6px;background:${p.tipo==="pagado"?"rgba(245,101,101,0.1)":"rgba(62,207,142,0.1)"};color:${p.tipo==="pagado"?"var(--red)":"var(--green)"}">${p.tipo}</span>
-        </div>`).join("")}
-    </div>
-    <div class="card">
-      <div class="card-title">Intensidad por canal (1-10)</div>
-      ${(my.canales||[]).map((ch,i)=>`
-        <div style="display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:600">${ch.canal}</div>
-          <div class="bar-track"><div class="bar-fill" style="width:${ch.intensidad*10}%;background:var(--accent)"></div></div>
-          <div style="font-size:13px;font-weight:800;color:var(--accent);text-align:right">${ch.intensidad}</div>
-        </div>`).join("")}
-    </div>
-  `;
-
-  // Keywords
-  const keywordsHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea el análisis de keywords y mensajes clave.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
-    <div class="card">
-      <div class="card-title">Keywords de ${myN}</div>
-      <div class="kw-cloud">
-        ${(my.keywords||[]).map(kw=>{
-          const c=kwColors[kw.tipo]||"#9ca3af";
-          const s=kw.volumen==="alto"?"16px":kw.volumen==="medio"?"13px":"11px";
-          const p=kw.volumen==="alto"?"7px 16px":"5px 10px";
-          return `<span class="kw" style="padding:${p};background:${c}14;border:1px solid ${c}28;font-size:${s};color:${c}">${kw.palabra}</span>`;
-        }).join("")}
-      </div>
-    </div>
-    ${cmp ? `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
-      <div class="card" style="border-top:2px solid var(--accent2)">
-        <div class="card-title" style="color:var(--accent2)">Solo las usa el competidor</div>
-        <div class="kw-cloud">${(cmp.keywords_solo_ellos||[]).map(k=>`<span class="kw" style="background:rgba(200,169,110,0.1);color:var(--accent2)">${k}</span>`).join("")}</div>
-      </div>
-      <div class="card" style="border-top:2px solid #7b61ff">
-        <div class="card-title" style="color:#7b61ff">Oportunidades para ti</div>
-        <div class="kw-cloud">${(cmp.keywords_para_ti||[]).map(k=>`<span class="kw" style="background:rgba(123,97,255,0.1);color:#7b61ff">${k}</span>`).join("")}</div>
-      </div>
-    </div>` : ""}
-  `;
-
-  // Campañas
-  const campanasHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea campañas activas y alianzas detectadas.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
-    <div class="card">
-      <div class="card-title">Campañas recientes — ${myN}</div>
-      ${(my.campanas||[]).map(c=>{
-        const pColors={facebook:"#1877f2",instagram:"#e1306c",tiktok:"#69c9d0",youtube:"#f00",google:"#fbbc04"};
-        const pc=pColors[c.plataforma?.toLowerCase()]||"var(--accent)";
-        return `<div class="item-row">
-          <div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:3px">${c.nombre}</div>
-            <div style="font-size:12px;color:var(--muted)">${c.descripcion}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px">
+      ${scoreRing(my.score_marca?.toFixed(1)||"0","#4f7fff","Score digital","Posicionamiento")}
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <div class="card" style="padding:14px 16px;border-left:3px solid #7b61ff">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Share de voz</div>
+          <div style="display:flex;align-items:flex-end;gap:6px">
+            <span style="font-size:28px;font-weight:800;color:#7b61ff">${my.share_voz}%</span>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-            <span class="badge" style="background:${pc}22;color:${pc}">${c.plataforma}</span>
-            <span style="font-size:11px;color:${c.activo?"var(--green)":"var(--muted)"}">${c.activo?"● Activo":"Finalizado"}</span>
+          <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:8px;overflow:hidden">
+            <div style="width:${my.share_voz}%;height:100%;background:#7b61ff;border-radius:2px"></div>
           </div>
-        </div>`;
-      }).join("")}
-    </div>
-    <div class="card">
-      <div class="card-title">Alianzas detectadas</div>
-      ${(my.alianzas||[]).map(al=>{
-        const tc={influencer:"#e84393",marca:"#7b61ff",medio:"#00c2ff"}[al.tipo]||"var(--accent)";
-        return `<div class="item-row">
-          <div style="font-size:14px;font-weight:600">${al.partner}</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <span class="badge" style="background:${tc}18;color:${tc}">${al.tipo}</span>
-            <span style="font-size:11px;color:${al.impacto==="alto"?"var(--green)":al.impacto==="medio"?"var(--accent2)":"var(--muted)"}">${al.impacto}</span>
-          </div>
-        </div>`;
-      }).join("")}
-    </div>
-  `;
-
-  // Brechas
-  const brechasHTML = !cmp ? "" : `
-    <div style="margin-bottom:12px">
-      <div class="card" style="background:${cmp.lider===myN?"rgba(79,127,255,0.06)":"rgba(200,169,110,0.06)"};border-color:${cmp.lider===myN?"rgba(79,127,255,0.2)":"rgba(200,169,110,0.2)"}">
-        <div style="font-weight:700;font-size:16px;margin-bottom:5px">${cmp.lider===myN?myN+" va por delante":cpN+" va por delante"}</div>
-        <div style="font-size:13px;color:var(--muted)">${cmp.resumen}</div>
-      </div>
-    </div>
-    ${(cmp.brechas||[]).map(b=>{
-      const win=b.ventaja==="yo"; const tie=b.ventaja==="empate";
-      const sc=win?"#3ecf8e":tie?"#6b7280":"#f56565";
-      const diff=Math.abs((b.yo||5)-(b.ellos||5));
-      return `<div class="brecha-card" style="background:${win?"rgba(62,207,142,0.04)":"rgba(245,101,101,0.04)"};border-color:${sc};border-left-color:${sc}">
-        <div class="bc-top">
-          <div class="bc-dim">${b.dimension}</div>
-          <span class="bc-label" style="background:${sc}18;color:${sc}">${win?`+${diff.toFixed(1)} tú`:tie?"Empate":`-${diff.toFixed(1)} ellos`}</span>
         </div>
-        <div class="bc-bar"><div class="bc-name" style="color:var(--accent)">${myN.slice(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${(b.yo/10)*100}%;background:var(--accent)"></div></div><span style="font-size:11px;font-weight:800;color:var(--accent);min-width:16px;text-align:right">${b.yo}</span></div>
-        <div class="bc-bar"><div class="bc-name" style="color:var(--accent2)">${cpN.slice(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${(b.ellos/10)*100}%;background:var(--accent2)"></div></div><span style="font-size:11px;font-weight:800;color:var(--accent2);min-width:16px;text-align:right">${b.ellos}</span></div>
-        <div class="bc-desc">${b.descripcion}</div>
-      </div>`;
-    }).join("")}
-    ${(cmp.oportunidades||[]).map(op=>{
-      const ic=op.impacto==="alto"?"var(--green)":"var(--accent2)";
-      const pc={"esta semana":"#e84393","este mes":"var(--accent2)","este trimestre":"var(--muted)"}[op.plazo]||"var(--muted)";
-      return `<div class="card" style="background:rgba(200,169,110,0.04);border-color:rgba(200,169,110,0.12);margin-bottom:9px">
-        <div style="display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap">
-          <span class="badge" style="background:${ic}18;color:${ic}">Impacto ${op.impacto}</span>
-          <span class="badge" style="background:${pc}18;color:${pc}">${op.plazo}</span>
+        <div class="card" style="padding:14px 16px;border-left:3px solid ${tendColor}">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Tendencia</div>
+          <div style="font-size:22px;font-weight:800;color:${tendColor}">${tendIcon} ${my.tendencia}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${my.industria||""}</div>
         </div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px">${op.titulo}</div>
-        <div style="font-size:12px;color:var(--muted)">${op.descripcion}</div>
-      </div>`;
-    }).join("")}
-  `;
-
-  // Plan de acción
-  const planHTML = !cmp ? "" : `
-    ${(cmp.plan_accion||[]).map((a,i)=>{
-      const pc={"esta semana":"#e84393","este mes":"var(--accent2)","este trimestre":"var(--muted)"}[a.plazo]||"var(--muted)";
-      return `<div class="action-item">
-        <div class="action-num">${i+1}</div>
-        <div><div class="action-title">${a.accion}</div><div class="action-reason">${a.por_que}</div></div>
-        <span class="plazo" style="background:${pc}18;color:${pc}">${a.plazo}</span>
-      </div>`;
-    }).join("")}
-  `;
-
-
-  // Web & SEO tab — loads PageSpeed async after render
-  const webHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea análisis de velocidad web y SEO.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
-    <div class="card" id="speed-card-${myN.replace(/\s/g,'_')}">
-      <div class="card-title">Velocidad y SEO de la web</div>
-      <div style="text-align:center;padding:24px 0;color:var(--muted);font-size:13px" id="speed-loading-${myN.replace(/\s/g,'_')}">
-        <div style="width:20px;height:20px;border:2px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
-        Analizando velocidad de carga...
       </div>
-      <div id="speed-result-${myN.replace(/\s/g,'_')}" style="display:none"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Palabras clave SEO estimadas</div>
-      <div class="kw-cloud">
-        ${(my.keywords||[]).filter(k=>k.tipo==="producto"||k.tipo==="categoria").map(kw=>`
-          <span class="kw" style="padding:5px 12px;background:rgba(79,127,255,0.08);border:1px solid rgba(79,127,255,0.15);color:#7fa6ff;font-size:12px">${kw.palabra}</span>
-        `).join("")}
-        ${(my.keywords||[]).filter(k=>k.tipo==="marca").map(kw=>`
-          <span class="kw" style="padding:5px 12px;background:rgba(200,169,110,0.08);border:1px solid rgba(200,169,110,0.15);color:#c8a96e;font-size:12px">${kw.palabra}</span>
-        `).join("")}
+      <div class="card" style="padding:16px 18px">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Actividad digital</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:18px;font-weight:800;color:${my.nivel_actividad==="alto"?"#3ecf8e":"#c8a96e"}">${my.nivel_actividad}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px">NIVEL</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:18px;font-weight:800;color:#4f7fff">${(my.canales||[]).length}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px">CANALES</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:18px;font-weight:800;color:#e84393">${(my.campanas||[]).filter(c=>c.activo).length}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px">CAMPAÑAS</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:18px;font-weight:800;color:#c8a96e">${(my.alianzas||[]).length}</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px">ALIANZAS</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <div class="card" style="border-left:3px solid var(--accent);margin-bottom:14px">
+      <div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">Propuesta de valor</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px">"${my.mensaje_principal}"</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">${my.propuesta_valor}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <span style="padding:3px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--soft)">Tono: ${my.tono}</span>
+        <span style="padding:3px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--soft)">${my.industria}</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="card" style="border-top:2px solid #3ecf8e">
+        <div style="font-size:10px;color:#3ecf8e;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Fortalezas</div>
+        ${(my.fortalezas||[]).map(f=>`<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start">
+          <span style="width:18px;height:18px;border-radius:50%;background:rgba(62,207,142,0.12);border:1px solid rgba(62,207,142,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:#3ecf8e;flex-shrink:0;margin-top:1px">✓</span>
+          <span style="font-size:13px;color:#d1d5db;line-height:1.5">${f}</span>
+        </div>`).join("")}
+      </div>
+      <div class="card" style="border-top:2px solid #f56565">
+        <div style="font-size:10px;color:#f56565;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Debilidades</div>
+        ${(my.debilidades||[]).map(f=>`<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start">
+          <span style="width:18px;height:18px;border-radius:50%;background:rgba(245,101,101,0.12);border:1px solid rgba(245,101,101,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:#f56565;flex-shrink:0;margin-top:1px">!</span>
+          <span style="font-size:13px;color:#d1d5db;line-height:1.5">${f}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+
     ${my.sentimiento ? `
     <div class="card">
-      <div class="card-title">Sentimiento público de marca</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <div style="flex:1;background:rgba(62,207,142,0.08);border:1px solid rgba(62,207,142,0.15);border-radius:8px;padding:12px;text-align:center">
-          <div style="font-size:22px;font-weight:800;color:#3ecf8e">${my.sentimiento.positivo}%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Positivo</div>
-        </div>
-        <div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
-          <div style="font-size:22px;font-weight:800;color:var(--soft)">${my.sentimiento.neutral}%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Neutral</div>
-        </div>
-        <div style="flex:1;background:rgba(245,101,101,0.08);border:1px solid rgba(245,101,101,0.15);border-radius:8px;padding:12px;text-align:center">
-          <div style="font-size:22px;font-weight:800;color:#f56565">${my.sentimiento.negativo}%</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Negativo</div>
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Sentimiento de marca</div>
+      <div style="display:flex;gap:0;border-radius:8px;overflow:hidden;height:14px;margin-bottom:10px">
+        <div style="width:${my.sentimiento.positivo}%;background:#3ecf8e;transition:width 1s"></div>
+        <div style="width:${my.sentimiento.neutral}%;background:#6b7280"></div>
+        <div style="width:${my.sentimiento.negativo}%;background:#f56565"></div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#3ecf8e"></div><span style="font-size:12px;color:var(--soft)">Positivo ${my.sentimiento.positivo}%</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#6b7280"></div><span style="font-size:12px;color:var(--soft)">Neutral ${my.sentimiento.neutral}%</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:#f56565"></div><span style="font-size:12px;color:var(--soft)">Negativo ${my.sentimiento.negativo}%</span></div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:6px;border-left:2px solid rgba(255,255,255,0.08)">${my.sentimiento.resumen}</div>
+    </div>` : ""}
+
+    ${!plan.full ? `<div class="lock-box"><h3>Desbloquea el análisis completo</h3><p>Canales, inversión, keywords, campañas y más con el plan Pro.</p><button class="btn-primary" onclick="showPricing()">Ver planes — desde $15/mes</button></div>` : ""}
+  `;
+
+  // ── Canales panel ──
+  const canalesHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Inversión estimada por plataforma</div>
+      ${(my.inversion||[]).map(p => {
+        const c = platColor(p.plataforma);
+        const tend = p.tendencia==="subiendo"?"↑ ":"→ ";
+        const tc   = p.tendencia==="subiendo"?"#3ecf8e":"#c8a96e";
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:10px;height:10px;border-radius:50%;background:${c}"></div>
+              <span style="font-size:13px;font-weight:600">${p.plataforma}</span>
+              <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${p.tipo==="pagado"?"rgba(245,101,101,0.1)":"rgba(62,207,142,0.1)"};color:${p.tipo==="pagado"?"#f56565":"#3ecf8e"}">${p.tipo}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;color:${tc}">${tend}${p.tendencia}</span>
+              <span style="font-size:14px;font-weight:800;color:${c}">${p.pct}%</span>
+            </div>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden">
+            <div style="width:${p.pct}%;height:100%;background:${c};border-radius:4px;transition:width 1.2s ease"></div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+
+    <div class="card">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Intensidad por canal (1-10)</div>
+      ${(my.canales||[]).map(ch => {
+        const c = platColor(ch.canal);
+        const pct = (ch.intensidad/10)*100;
+        const tipoBadge = ch.tipo==="pagado"?"rgba(245,101,101,0.1)":"rgba(62,207,142,0.1)";
+        const tipoCol   = ch.tipo==="pagado"?"#f56565":"#3ecf8e";
+        return `<div style="display:grid;grid-template-columns:110px 1fr 40px 60px;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:7px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+            <span style="font-size:12px;font-weight:600">${ch.canal}</span>
+          </div>
+          <div style="height:7px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${c};border-radius:3px"></div>
+          </div>
+          <span style="font-size:14px;font-weight:800;color:${c};text-align:right">${ch.intensidad}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${tipoBadge};color:${tipoCol};text-align:center">${ch.tipo}</span>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  // ── Keywords panel ──
+  const kwColors = {marca:"#4f7fff",producto:"#7b61ff",emocion:"#e84393",promocion:"#c8a96e",categoria:"#3ecf8e"};
+  const keywordsHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Mapa de keywords</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        ${(my.keywords||[]).map(kw => {
+          const c = kwColors[kw.tipo]||"#9ca3af";
+          const sz = kw.volumen==="alto"?"16px":kw.volumen==="medio"?"13px":"11px";
+          const pd = kw.volumen==="alto"?"8px 18px":"5px 12px";
+          return `<span style="padding:${pd};border-radius:6px;background:${c}14;border:1px solid ${c}30;font-size:${sz};color:${c};font-weight:700;cursor:default" title="${kw.tipo} · ${kw.volumen}">${kw.palabra}</span>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border)">
+        ${Object.entries(kwColors).map(([tipo,c]) => `
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:8px;height:8px;border-radius:2px;background:${c}"></div>
+            <span style="font-size:11px;color:var(--muted)">${tipo}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+    ${my.top_keywords_seo?.length ? `
+    <div class="card">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Top keywords SEO</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${my.top_keywords_seo.map((k,i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:7px">
+            <span style="font-size:11px;font-weight:800;color:var(--muted);width:16px">${i+1}</span>
+            <span style="font-size:13px;color:var(--text)">${k}</span>
+          </div>`).join("")}
+      </div>
+    </div>` : ""}
+    ${cmp && cmp.keywords_solo_ellos ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+      <div class="card" style="border-top:2px solid #c8a96e">
+        <div style="font-size:10px;color:#c8a96e;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Solo las usa el competidor</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${(cmp.keywords_solo_ellos||[]).map(k=>`<span style="padding:4px 10px;border-radius:5px;background:rgba(200,169,110,0.1);color:#c8a96e;font-size:11px;font-weight:700">${k}</span>`).join("")}
         </div>
       </div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:6px">${my.sentimiento.resumen}</div>
+      <div class="card" style="border-top:2px solid #7b61ff">
+        <div style="font-size:10px;color:#7b61ff;font-weight:700;letter-spacing:1px;margin-bottom:10px;text-transform:uppercase">Oportunidades para ti</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${(cmp.keywords_para_ti||[]).map(k=>`<span style="padding:4px 10px;border-radius:5px;background:rgba(123,97,255,0.1);color:#7b61ff;font-size:11px;font-weight:700">${k}</span>`).join("")}
+        </div>
+      </div>
     </div>` : ""}
+  `;
+
+  // ── Campañas panel ──
+  const campanasHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Campañas detectadas</div>
+      ${(my.campanas||[]).map(c => {
+        const pc = platColor(c.plataforma);
+        return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:9px;margin-bottom:9px">
+          <div style="width:36px;height:36px;border-radius:8px;background:${pc}18;border:1px solid ${pc}30;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="width:10px;height:10px;border-radius:50%;background:${pc}"></div>
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-size:14px;font-weight:700">${c.nombre}</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${c.activo?"rgba(62,207,142,0.1)":"rgba(255,255,255,0.04)"};color:${c.activo?"#3ecf8e":"var(--muted)"}">${c.activo?"● Activo":"Finalizado"}</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${c.descripcion}</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:5px;background:${pc}18;color:${pc}">${c.plataforma}</span>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
     <div class="card">
-      <div class="card-title">Monitor de cambios web</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Activa el monitoreo para recibir alertas cuando este sitio cambie su contenido o lance promociones.</p>
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Alianzas e influencers</div>
+      ${(my.alianzas||[]).map(al => {
+        const tc = {influencer:"#e84393",marca:"#7b61ff",medio:"#00c2ff"}[al.tipo]||"#4f7fff";
+        const ic = al.impacto==="alto"?"#3ecf8e":al.impacto==="medio"?"#c8a96e":"var(--muted)";
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:${tc}18;border:1px solid ${tc}30;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${tc}">${al.partner[0]}</div>
+            <span style="font-size:14px;font-weight:600">${al.partner}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:10px;padding:2px 8px;border-radius:5px;background:${tc}18;color:${tc}">${al.tipo}</span>
+            <span style="font-size:11px;color:${ic};font-weight:700">${al.impacto}</span>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  // ── Web & SEO panel ──
+  const brandKey  = myN.replace(/\s/g,"_");
+  const webHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" id="speed-card-${brandKey}" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Velocidad web real (Google PageSpeed)</div>
+      <div style="text-align:center;padding:24px 0" id="speed-loading-${brandKey}">
+        <div style="width:20px;height:20px;border:2px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
+        <div style="font-size:13px;color:var(--muted)">Analizando velocidad...</div>
+      </div>
+      <div id="speed-result-${brandKey}" style="display:none"></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Keywords SEO estimadas</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${(my.keywords||[]).filter(k=>["producto","categoria"].includes(k.tipo)).map(kw =>
+          `<span style="padding:5px 12px;background:rgba(79,127,255,0.08);border:1px solid rgba(79,127,255,0.15);color:#7fa6ff;font-size:12px;font-weight:700;border-radius:6px">${kw.palabra}</span>`
+        ).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Monitor de cambios</div>
       <div class="monitor-row">
         <div>
-          <div style="font-size:13px;font-weight:600">Monitorear sitio web</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">Revisión diaria + alerta por email si hay cambios</div>
+          <div style="font-size:13px;font-weight:600">Activar monitoreo diario</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Alerta por email si el sitio cambia o lanza ofertas</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" onchange="toggleMonitor(this, '${my.nombre}')"/>
+          <input type="checkbox" onchange="toggleMonitor(this,'${myN}')"/>
           <span class="toggle-slider"></span>
         </label>
       </div>
     </div>
   `;
 
-  // Social profiles tab — loads async
-  const brandKey = myN.replace(/\s/g,'_');
-  const socialHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea búsqueda de perfiles sociales.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
-    <div class="card">
-      <div class="card-title">Perfiles sociales detectados</div>
-      <div id="social-loading-${brandKey}" style="text-align:center;padding:24px 0;color:var(--muted);font-size:13px">
+  // ── Social panel ──
+  const socialHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase">Perfiles sociales detectados</div>
+      <div id="social-loading-${brandKey}" style="text-align:center;padding:20px 0">
         <div style="width:20px;height:20px;border:2px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px"></div>
-        Buscando perfiles...
+        <div style="font-size:13px;color:var(--muted)">Buscando perfiles...</div>
       </div>
       <div id="social-result-${brandKey}" style="display:none"></div>
     </div>
     <div class="card">
-      <div class="card-title">Presencia en plataformas (estimada por IA)</div>
-      <div class="social-grid">
-        ${(my.canales||[]).map(ch=>{
-          const colors = {instagram:"#e1306c",facebook:"#1877f2",tiktok:"#69c9d0",youtube:"#f00",google:"#fbbc04",linkedin:"#0077b5",twitter:"#1da1f2"};
-          const c = colors[ch.canal?.toLowerCase()] || "var(--accent)";
-          return `<div class="social-chip" style="border-color:${c}22;background:${c}08">
-            <div class="social-dot" style="background:${c}"></div>
-            <span>${ch.canal}</span>
-            <span style="color:${c};font-size:10px">${ch.tipo}</span>
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase">Presencia por plataforma</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${(my.canales||[]).map(ch => {
+          const c = platColor(ch.canal);
+          return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:${c}0d;border:1px solid ${c}25">
+            <div style="width:8px;height:8px;border-radius:50%;background:${c}"></div>
+            <span style="font-size:12px;font-weight:700;color:${c}">${ch.canal}</span>
+            <span style="font-size:10px;color:var(--muted)">${ch.tipo}</span>
           </div>`;
         }).join("")}
       </div>
     </div>
   `;
 
-  const panels = {overview:overviewHTML,canales:canalesHTML,keywords:keywordsHTML,campanas:campanasHTML,web:webHTML,social:socialHTML,brechas:brechasHTML,plan:planHTML};
+  // ── Brechas panel ──
+  const brechasHTML = !cmp ? "" : `
+    <div class="card" style="margin-bottom:14px;background:${cmp.lider===myN?"rgba(79,127,255,0.05)":"rgba(200,169,110,0.05)"};border-color:${cmp.lider===myN?"rgba(79,127,255,0.2)":"rgba(200,169,110,0.2)"}">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:12px;background:${cmp.lider===myN?"rgba(79,127,255,0.1)":"rgba(200,169,110,0.1)"};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${cmp.lider===myN?"▲":"◆"}</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;color:${cmp.lider===myN?"#7fa6ff":"#c8a96e"}">${cmp.lider===myN?myN+" lleva la delantera":cpN+" lleva la delantera"}</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5">${cmp.resumen}</div>
+        </div>
+      </div>
+    </div>
 
+    ${(cmp.brechas||[]).map(b => {
+      const win  = b.ventaja==="yo";
+      const tie  = b.ventaja==="empate";
+      const sc   = win?"#3ecf8e":tie?"#6b7280":"#f56565";
+      const diff = Math.abs((b.yo||5)-(b.ellos||5));
+      return `<div style="padding:14px 16px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid ${sc}25;border-left:3px solid ${sc};margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:14px;font-weight:700">${b.dimension}</span>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:${sc}18;color:${sc}">${win?`+${diff.toFixed(1)} tú lideras`:tie?"Empate":`-${diff.toFixed(1)} ellos lideran`}</span>
+        </div>
+        <div style="margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:11px;color:#7fa6ff;width:72px;flex-shrink:0">${myN.slice(0,10)}</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+              <div style="width:${(b.yo/10)*100}%;height:100%;background:#4f7fff;border-radius:3px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:800;color:#7fa6ff;min-width:20px">${b.yo}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:#c8a96e;width:72px;flex-shrink:0">${cpN.slice(0,10)}</span>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden">
+              <div style="width:${(b.ellos/10)*100}%;height:100%;background:#c8a96e;border-radius:3px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:800;color:#c8a96e;min-width:20px">${b.ellos}</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">${b.descripcion}</div>
+      </div>`;
+    }).join("")}
+
+    ${(cmp.oportunidades||[]).length ? `
+    <div style="font-size:10px;color:#c8a96e;font-weight:700;letter-spacing:1px;margin:16px 0 10px;text-transform:uppercase">Oportunidades detectadas</div>
+    ${(cmp.oportunidades||[]).map(op => {
+      const ic = op.impacto==="alto"?"#3ecf8e":"#c8a96e";
+      const pc = {"esta semana":"#e84393","este mes":"#c8a96e","este trimestre":"var(--muted)"}[op.plazo]||"var(--muted)";
+      return `<div style="padding:14px 16px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.12);border-radius:9px;margin-bottom:8px">
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${ic}18;color:${ic}">Impacto ${op.impacto}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${pc}18;color:${pc}">${op.plazo}</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">${op.titulo}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">${op.descripcion}</div>
+      </div>`;
+    }).join("")}` : ""}
+  `;
+
+  // ── Plan de acción ──
+  const planHTML = !cmp ? "" : `
+    ${(cmp.plan_accion||[]).map((a,i) => {
+      const pc = {"esta semana":"#e84393","este mes":"#c8a96e","este trimestre":"var(--muted)"}[a.plazo]||"var(--muted)";
+      return `<div style="display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:flex-start;padding:16px;background:rgba(79,127,255,0.04);border:1px solid rgba(79,127,255,0.1);border-radius:10px;margin-bottom:10px">
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(79,127,255,0.1);border:2px solid rgba(79,127,255,0.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#7fa6ff">${i+1}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:5px">${a.accion}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">${a.por_que}</div>
+        </div>
+        <span style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;background:${pc}18;color:${pc};white-space:nowrap;flex-shrink:0">${a.plazo}</span>
+      </div>`;
+    }).join("")}
+  `;
+
+  const panels    = {overview:overviewHTML,canales:canalesHTML,keywords:keywordsHTML,campanas:campanasHTML,web:webHTML,social:socialHTML,brechas:brechasHTML,plan:planHTML};
   const panelsHTML = tabs.map((t,i) =>
     `<div class="rpanel${i===0?" on":""}" id="rp-${t[0]}">${panels[t[0]]||""}</div>`
   ).join("");
 
+  // Score color
+  const sc = my.score_marca>=8?"#3ecf8e":my.score_marca>=6?"#4f7fff":"#c8a96e";
+
   document.getElementById("app-results").innerHTML = `
-    <div class="result-hero">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+    <div style="background:linear-gradient(135deg,rgba(79,127,255,0.08),rgba(200,169,110,0.04));border:1px solid rgba(79,127,255,0.15);border-radius:14px;padding:20px 22px;margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:14px">
         <div>
-          <div class="r-name">${myN}${cpN ? ` vs ${cpN}` : ""}</div>
-          <div class="r-sub">${COUNTRIES[country]} · ${PERIODS[period]}</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px">${myN}${cpN?" <span style='color:var(--muted);font-weight:400;font-size:16px'>vs</span> "+cpN:""}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">${COUNTRIES[country]} · ${PERIODS[period]} · Analizado ahora</div>
         </div>
-        <button onclick="document.getElementById('app-results').style.display='none';document.getElementById('app-search').style.display='block'" style="font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Nueva búsqueda</button>
+        <button onclick="document.getElementById('app-results').style.display='none';document.getElementById('app-search').style.display='block'" style="font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:inherit;transition:all .2s">← Nueva búsqueda</button>
       </div>
-      <div class="kpis">
-        <div class="kpi" style="border-top:2px solid var(--accent)"><div class="kpi-l">Score</div><div class="kpi-v" style="color:var(--accent)">${my.score_marca?.toFixed(1)}/10</div></div>
-        <div class="kpi" style="border-top:2px solid #7b61ff"><div class="kpi-l">Share voz</div><div class="kpi-v" style="color:#7b61ff">${my.share_voz}%</div></div>
-        <div class="kpi"><div class="kpi-l">Actividad</div><div class="kpi-v" style="font-size:14px">${my.nivel_actividad}</div></div>
-        <div class="kpi"><div class="kpi-l">Tendencia</div><div class="kpi-v" style="font-size:13px;color:${my.tendencia==="creciendo"?"var(--green)":"var(--muted)"}">${my.tendencia}</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Score</div>
+          <div style="font-size:24px;font-weight:800;color:${sc}">${my.score_marca?.toFixed(1)}</div>
+          <div style="font-size:10px;color:var(--muted)">/10 puntos</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Share de voz</div>
+          <div style="font-size:24px;font-weight:800;color:#7b61ff">${my.share_voz}%</div>
+          <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="width:${my.share_voz}%;height:100%;background:#7b61ff;border-radius:2px"></div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Actividad</div>
+          <div style="font-size:18px;font-weight:800;color:${my.nivel_actividad==="alto"?"#3ecf8e":"#c8a96e"}">${my.nivel_actividad}</div>
+          <div style="font-size:10px;color:var(--muted)">${my.industria||""}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px">
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase">Tendencia</div>
+          <div style="font-size:18px;font-weight:800;color:${my.tendencia==="creciendo"?"#3ecf8e":my.tendencia==="decreciendo"?"#f56565":"#c8a96e"}">${my.tendencia==="creciendo"?"↑":my.tendencia==="decreciendo"?"↓":"→"} ${my.tendencia}</div>
+          <div style="font-size:10px;color:var(--muted)">${(my.canales||[]).length} canales activos</div>
+        </div>
       </div>
     </div>
     <div class="rtabs">${tabsHTML}</div>
@@ -1660,5 +1834,3 @@ window.addEventListener("scroll", () => {
 </script>
 </body>
 </html>
-
-
