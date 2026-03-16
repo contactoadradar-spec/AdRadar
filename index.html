@@ -290,6 +290,29 @@
   <p>Cargando AdRadar...</p>
 </div>
 
+<script>
+// Mostrar inmediatamente la pantalla correcta según caché local
+// Evita el parpadeo de carga esperando a Firebase
+(function(){
+  try {
+    const cached = localStorage.getItem("ar_user");
+    if (cached) {
+      // Usuario probablemente logueado — ocultar loading de inmediato
+      document.getElementById("page-loading").style.display = "none";
+      document.getElementById("navbar").style.display = "flex";
+      document.getElementById("nav-r").style.display = "none";
+      document.getElementById("app-nav").style.display = "flex";
+      document.getElementById("page-app").style.display = "block";
+    } else {
+      // No hay sesión cacheada — mostrar landing de inmediato
+      document.getElementById("page-loading").style.display = "none";
+      document.getElementById("navbar").style.display = "flex";
+      document.getElementById("page-landing").style.display = "block";
+    }
+  } catch(e) {}
+})();
+</script>
+
 <!-- ═══ NAV ═══ -->
 <nav id="navbar" style="display:none">
   <a href="#" class="nav-logo" onclick="if(window._userLoggedIn)return false;">Ad<span>Radar</span></a>
@@ -679,6 +702,9 @@
       window._user = user;
       window._userLoggedIn = true;
 
+      // Save minimal cache so next load is instant
+      try { localStorage.setItem("ar_user", "1"); } catch(e) {}
+
       // Load or create user doc
       const ref  = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
@@ -689,7 +715,7 @@
         window._userData = snap.data();
       }
 
-      // Show app UI
+      // Show app UI (may already be showing from cache — just update data)
       loading.style.display = "none";
       showNavApp();
       showApp();
@@ -698,6 +724,9 @@
       window._user = null;
       window._userData = null;
       window._userLoggedIn = false;
+
+      // Clear cache
+      try { localStorage.removeItem("ar_user"); } catch(e) {}
 
       // Show landing
       loading.style.display = "none";
