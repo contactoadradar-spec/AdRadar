@@ -3,295 +3,321 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0a0b0f"/>
-
-  <!-- SEO primario -->
   <title>AdRadar — Descubre qué hace tu competencia en internet</title>
-  <meta name="description" content="Inteligencia competitiva con IA para pymes. Descubre en qué canales se anuncia tu competencia, qué keywords usa, cuánto invierte y cómo superarla. Gratis para empezar."/>
-  <meta name="keywords" content="inteligencia competitiva, análisis de competencia, marketing digital, pymes, keywords competencia, canales publicidad, estrategia digital"/>
-  <meta name="robots" content="index, follow"/>
-  <link rel="canonical" href="https://adradar.app/"/>
-
-  <!-- Open Graph (redes sociales) -->
-  <meta property="og:type" content="website"/>
-  <meta property="og:url" content="https://adradar.app/"/>
-  <meta property="og:title" content="AdRadar — Descubre qué hace tu competencia en internet"/>
-  <meta property="og:description" content="Análisis competitivo con IA en segundos. Canales, inversión, keywords y estrategia de tu competencia. Gratis para pymes."/>
-  <meta property="og:locale" content="es_CL"/>
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="AdRadar — Inteligencia Competitiva con IA"/>
-  <meta name="twitter:description" content="Descubre exactamente qué hace tu competencia en internet. Análisis en segundos."/>
-
-  <!-- Preconnect para velocidad -->
+  <meta name="description" content="Inteligencia competitiva con IA para pymes. Descubre canales, inversión y estrategia de tu competencia. Gratis para empezar."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
-
-  <!-- JSON-LD Structured Data -->
-  <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"AdRadar","description":"Plataforma de inteligencia competitiva con IA para pymes. Analiza canales, inversión y estrategia de tu competencia.","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":[{"@type":"Offer","name":"Plan Gratis","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Plan Pro","price":"15","priceCurrency":"USD"},{"@type":"Offer","name":"Plan Business","price":"25","priceCurrency":"USD"}],"audience":{"@type":"Audience","audienceType":"Pequeñas y medianas empresas"}}
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
-    :root {
-      --bg:#0a0b0f; --bg2:#111318; --bg3:#16181f;
-      --border:rgba(255,255,255,0.06); --text:#f0f1f5;
-      --muted:#5a6075; --soft:#8b92aa;
-      --accent:#4f7fff; --accent2:#c8a96e;
-      --green:#3ecf8e; --red:#f56565;
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0b0f;--bg2:#111318;--bg3:#16181f;--border:rgba(255,255,255,0.07);--text:#f0f1f5;--muted:#5a6075;--soft:#8b92aa;--accent:#4f7fff;--accent2:#c8a96e;--green:#3ecf8e;--red:#f56565}
+    *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:'Open Sans',sans-serif;overflow-x:hidden;line-height:1.6}
-    h1,h2,h3{font-family:'Open Sans',sans-serif;font-weight:700;letter-spacing:-0.5px}
+    body{background:var(--bg);color:var(--text);font-family:'Open Sans',sans-serif;overflow-x:hidden}
     a{text-decoration:none;color:inherit}
+    button{cursor:pointer;border:none;font-family:inherit}
+    input,select{outline:none;font-family:inherit}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .spin{animation:spin .8s linear infinite}
+    .fade{animation:fadeUp .3s ease forwards}
 
+    /* ── LOADING ── */
+    #page-loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:14px}
+    #page-loading .sp{width:36px;height:36px;border:3px solid rgba(79,127,255,0.2);border-top-color:#4f7fff;border-radius:50%;animation:spin .8s linear infinite}
+    #page-loading p{font-size:13px;color:var(--muted)}
+
+    /* ── NAV ── */
     nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:rgba(10,11,15,0.95);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
-    .nav-logo{font-family:'Open Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;z-index:2}
+    .nav-logo{font-weight:800;font-size:18px;letter-spacing:-0.5px}
     .nav-logo span{color:var(--accent)}
-
-    /* Hamburger button */
-    .ham{display:flex;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;background:transparent;border:none;cursor:pointer;padding:4px;z-index:2;border-radius:6px;transition:background .2s}
+    .nav-r{display:flex;align-items:center;gap:8px}
+    .btn-ghost{padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600;color:var(--soft);background:transparent;border:1px solid var(--border);transition:all .2s}
+    .btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+    .btn-cta{padding:7px 18px;border-radius:6px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);transition:all .2s}
+    .btn-cta:hover{background:#3d6fff;box-shadow:0 4px 16px rgba(79,127,255,0.3)}
+    .ham{display:flex;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;background:transparent;border:none;padding:4px;border-radius:6px;transition:background .2s}
     .ham:hover{background:rgba(255,255,255,0.06)}
     .ham span{display:block;height:2px;background:var(--soft);border-radius:2px;transition:all .3s}
     .ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-    .ham.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+    .ham.open span:nth-child(2){opacity:0}
     .ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-
-    /* Drawer */
-    .nav-drawer{position:fixed;top:60px;left:0;right:0;bottom:0;background:rgba(10,11,15,0.98);backdrop-filter:blur(24px);z-index:99;display:flex;flex-direction:column;padding:32px 28px 40px;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-top:1px solid var(--border)}
-    .nav-drawer.open{transform:translateX(0)}
+    .drawer{position:fixed;top:60px;left:0;right:0;bottom:0;background:rgba(10,11,15,0.98);backdrop-filter:blur(24px);z-index:99;display:flex;flex-direction:column;padding:32px 28px 40px;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+    .drawer.open{transform:translateX(0)}
     .drawer-links{display:flex;flex-direction:column;gap:4px;margin-bottom:32px}
     .drawer-links a{font-size:20px;font-weight:600;color:var(--soft);padding:12px 0;border-bottom:1px solid var(--border);transition:color .2s}
-    .drawer-links a:hover{color:var(--text)}
     .drawer-ctas{display:flex;flex-direction:column;gap:10px;margin-top:auto}
-    .drawer-ctas .btn-ghost,.drawer-ctas .btn-cta{padding:13px 16px;border-radius:8px;font-size:14px;text-align:center;width:100%}
-    /* En pantallas pequeñas ocultar los botones del nav, dejar solo hamburguesa */
-    @media(max-width:520px){.nav-right .btn-ghost,.nav-right .btn-cta{display:none}}
-    .nav-right{display:flex;align-items:center;gap:8px}
-    .btn-ghost{padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600;color:var(--soft);background:transparent;border:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .2s}
-    .btn-ghost:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
-    .btn-cta{padding:7px 18px;border-radius:6px;font-size:13px;font-weight:700;color:#fff;background:var(--accent);border:none;cursor:pointer;font-family:inherit;transition:all .2s}
-    .btn-cta:hover{background:#3d6fff;box-shadow:0 4px 16px rgba(79,127,255,0.3)}
+    .drawer-ctas button{padding:13px;border-radius:8px;font-size:14px;width:100%;text-align:center}
+    @media(max-width:520px){.nav-r .btn-ghost,.nav-r .btn-cta{display:none}}
+
+    /* ── LANDING ── */
+    #page-landing{display:none}
     .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 24px 80px;text-align:center;position:relative;overflow:hidden}
-    .hero-glow{position:absolute;width:800px;height:500px;border-radius:50%;background:radial-gradient(ellipse,rgba(79,127,255,0.07) 0%,transparent 70%);top:10%;left:50%;transform:translateX(-50%);pointer-events:none}
-    .hero-tag{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(79,127,255,0.25);border-radius:4px;padding:5px 14px;margin-bottom:32px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;animation:fadeUp .5s ease forwards}
-    .tag-line{width:20px;height:1px;background:var(--accent);opacity:.6}
-    .hero h1{font-size:clamp(40px,6.5vw,82px);line-height:1.05;letter-spacing:-2px;max-width:820px;margin-bottom:24px;animation:fadeUp .6s .1s ease both}
+    .hero-glow{position:absolute;width:700px;height:400px;border-radius:50%;background:radial-gradient(ellipse,rgba(79,127,255,0.07),transparent 70%);top:15%;left:50%;transform:translateX(-50%);pointer-events:none}
+    .hero-tag{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(79,127,255,0.25);border-radius:4px;padding:5px 14px;margin-bottom:32px;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase}
+    .hero h1{font-size:clamp(36px,6vw,76px);line-height:1.06;letter-spacing:-2px;max-width:820px;margin-bottom:22px;font-weight:800}
     .hero h1 em{font-style:italic;color:var(--accent2)}
-    .hero-sub{font-size:clamp(15px,1.8vw,18px);color:var(--muted);max-width:500px;line-height:1.75;margin-bottom:40px;animation:fadeUp .6s .2s ease both}
-    .hero-actions{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:52px;animation:fadeUp .6s .3s ease both}
-    .btn-primary{padding:13px 28px;border-radius:6px;font-size:14px;font-weight:600;color:#fff;background:var(--accent);border:none;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 4px 24px rgba(79,127,255,0.25)}
-    .btn-primary:hover{background:#3d6fff;transform:translateY(-1px);box-shadow:0 8px 32px rgba(79,127,255,0.35)}
-    .btn-outline{padding:13px 24px;border-radius:6px;font-size:14px;font-weight:500;color:var(--soft);background:transparent;border:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .2s}
-    .btn-outline:hover{color:var(--text);border-color:rgba(255,255,255,0.18)}
-    .hero-trust{font-size:12px;color:var(--muted);animation:fadeUp .6s .4s ease both}
-    .hero-trust strong{color:var(--soft);font-weight:600}
-
-    .mockup-wrap{width:100%;max-width:1000px;margin:56px auto 0;animation:fadeUp .7s .5s ease both;position:relative}
-    .mockup{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.05)}
-    .mockup-chrome{background:var(--bg3);height:38px;display:flex;align-items:center;padding:0 14px;gap:6px;border-bottom:1px solid var(--border)}
-    .c-dot{width:9px;height:9px;border-radius:50%}
-    .c-addr{margin:0 auto;background:rgba(255,255,255,0.04);border-radius:4px;padding:3px 14px;font-size:11px;color:var(--muted)}
-    .mockup-body{display:grid;grid-template-columns:190px 1fr;min-height:380px}
-    .m-side{border-right:1px solid var(--border);padding:16px 14px;display:flex;flex-direction:column;gap:6px}
-    .m-lbl{font-size:9px;color:var(--muted);letter-spacing:1.5px;font-weight:600;margin-bottom:6px;padding:0 4px}
-    .m-item{padding:8px 10px;border-radius:6px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
-    .m-item.on{background:rgba(79,127,255,0.1);color:#7fa6ff;border:1px solid rgba(79,127,255,0.15)}
-    .m-item.off{color:var(--muted);border:1px solid transparent}
-    .m-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .m-score{margin-top:auto;padding:12px;background:rgba(62,207,142,0.06);border:1px solid rgba(62,207,142,0.15);border-radius:8px}
-    .m-main{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
-    .m-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);padding-bottom:10px}
-    .m-tab{padding:4px 12px;font-size:11px;font-weight:600;border-radius:4px}
-    .m-tab.on{background:rgba(79,127,255,0.12);color:#7fa6ff}
-    .m-tab.off{color:var(--muted)}
-    .m-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-    .m-kpi{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
-    .m-kl{font-size:8px;color:var(--muted);letter-spacing:1px;font-weight:600;margin-bottom:5px}
-    .m-kv{font-size:20px;font-weight:700}
-    .m-sec{font-size:9px;color:var(--muted);letter-spacing:1.5px;font-weight:600}
-    .m-bars{display:flex;flex-direction:column;gap:7px}
-    .m-br{display:flex;align-items:center;gap:9px}
-    .m-bn{font-size:10px;color:var(--soft);width:72px;flex-shrink:0}
-    .m-bt{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
-    .m-bf{height:100%;border-radius:3px}
-    .m-bp{font-size:10px;font-weight:700;min-width:28px;text-align:right}
-    .m-chips{display:flex;flex-wrap:wrap;gap:5px}
-    .m-chip{padding:3px 9px;border-radius:4px;font-size:10px;font-weight:600}
-
-    .strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 24px;text-align:center;position:relative;z-index:1}
-    .strip-lbl{font-size:11px;color:var(--muted);letter-spacing:2px;font-weight:600;margin-bottom:18px;text-transform:uppercase}
-    .strip-logos{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;align-items:center}
-    .strip-logo{font-family:'Open Sans',sans-serif;font-weight:700;font-size:16px;color:rgba(255,255,255,0.12)}
+    .hero-sub{font-size:clamp(15px,1.8vw,18px);color:var(--muted);max-width:480px;line-height:1.75;margin-bottom:36px}
+    .hero-btns{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+    .btn-primary{padding:13px 28px;border-radius:6px;font-size:14px;font-weight:700;color:#fff;background:var(--accent);border:none;transition:all .2s;box-shadow:0 4px 24px rgba(79,127,255,0.25)}
+    .btn-primary:hover{background:#3d6fff;transform:translateY(-1px)}
+    .btn-outline{padding:13px 24px;border-radius:6px;font-size:14px;font-weight:600;color:var(--soft);background:transparent;border:1px solid var(--border);transition:all .2s}
+    .btn-outline:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+    .hero-note{font-size:12px;color:var(--muted)}
+    .hero-note strong{color:var(--soft)}
 
     .section{position:relative;z-index:1}
-    .inner{max-width:1080px;margin:0 auto;padding:96px 24px}
-    .inner-sm{max-width:760px;margin:0 auto;padding:96px 24px}
-    .stag{display:inline-block;padding:3px 12px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-    .sh{font-size:clamp(30px,4vw,52px);line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
-    .sp{font-size:16px;color:var(--muted);line-height:1.75;max-width:500px}
+    .inner{max-width:1080px;margin:0 auto;padding:80px 24px}
+    .stag{display:inline-block;padding:3px 12px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+    .sh{font-size:clamp(26px,3.5vw,46px);font-weight:800;line-height:1.1;letter-spacing:-1px;margin-bottom:12px}
+    .sp{font-size:15px;color:var(--muted);line-height:1.75;max-width:480px}
 
-    .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:52px}
-    .pc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:28px;transition:border-color .3s}
+    .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:48px}
+    .pc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:26px;transition:border-color .3s}
     .pc:hover{border-color:rgba(255,255,255,0.12)}
-    .pc-n{font-family:'Open Sans',sans-serif;font-size:36px;color:rgba(255,255,255,0.06);margin-bottom:14px;line-height:1}
-    .pc h3{font-family:'Open Sans',sans-serif;font-size:15px;font-weight:600;margin-bottom:8px}
+    .pc-n{font-size:32px;font-weight:800;color:rgba(255,255,255,0.05);margin-bottom:12px;line-height:1}
+    .pc h3{font-size:15px;font-weight:700;margin-bottom:7px}
     .pc p{font-size:13px;color:var(--muted);line-height:1.7}
 
-    .fblock{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;margin-top:64px}
-    .fblock.rev{direction:rtl}
-    .fblock.rev>*{direction:ltr}
-    .flist{display:flex;flex-direction:column;gap:28px}
-    .fi{display:flex;gap:14px}
-    .fi-ico{width:36px;height:36px;border-radius:8px;background:rgba(79,127,255,0.08);border:1px solid rgba(79,127,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-    .fi-ico svg{width:16px;height:16px}
-    .fi h4{font-family:'Open Sans',sans-serif;font-size:15px;font-weight:600;margin-bottom:5px}
-    .fi p{font-size:13px;color:var(--muted);line-height:1.65}
-    .fv{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px}
-    .fv-h{font-size:10px;color:var(--muted);letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:16px}
-
-    .steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:56px;background:var(--border);border-radius:12px;overflow:hidden}
-    .si{background:var(--bg);padding:36px 28px}
-    .si-n{font-family:'Open Sans',sans-serif;font-size:48px;color:rgba(255,255,255,0.06);line-height:1;margin-bottom:20px}
-    .si h3{font-family:'Open Sans',sans-serif;font-size:16px;font-weight:600;margin-bottom:8px}
+    .steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:48px;background:var(--border);border-radius:12px;overflow:hidden}
+    .si{background:var(--bg);padding:32px 26px}
+    .si-n{font-size:44px;font-weight:800;color:rgba(255,255,255,0.05);line-height:1;margin-bottom:16px}
+    .si h3{font-size:15px;font-weight:700;margin-bottom:7px}
     .si p{font-size:13px;color:var(--muted);line-height:1.65}
 
-    .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
-    .tc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:24px;transition:border-color .3s}
-    .tc:hover{border-color:rgba(255,255,255,0.12)}
-    .tc-stars{display:flex;gap:3px;margin-bottom:14px}
-    .star{width:12px;height:12px;background:var(--accent2);border-radius:2px}
-    .tc blockquote{font-family:'Open Sans',sans-serif;font-size:15px;color:var(--soft);line-height:1.65;margin-bottom:20px;font-style:italic}
-    .tc-au{display:flex;align-items:center;gap:10px}
-    .tc-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-    .tc-name{font-size:13px;font-weight:600}
+    .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+    .tc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px}
+    .tc-stars{display:flex;gap:3px;margin-bottom:12px}
+    .star{width:11px;height:11px;background:var(--accent2);border-radius:2px}
+    .tc blockquote{font-size:14px;color:var(--soft);line-height:1.65;margin-bottom:18px;font-style:italic}
+    .tc-au{display:flex;align-items:center;gap:9px}
+    .tc-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+    .tc-name{font-size:13px;font-weight:700}
     .tc-role{font-size:11px;color:var(--muted)}
 
-    .pgrid2{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:52px;background:var(--border);border-radius:12px;overflow:hidden}
-    .pcol{background:var(--bg);padding:36px 28px;position:relative;transition:background .3s}
+    .pgrid2{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:48px;background:var(--border);border-radius:12px;overflow:hidden}
+    .pcol{background:var(--bg);padding:32px 26px;position:relative;transition:background .3s}
     .pcol:hover{background:var(--bg2)}
     .pcol.hl{background:var(--bg2)}
-    .pbadge{position:absolute;top:16px;right:16px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:3px 10px;border-radius:3px;letter-spacing:1px;text-transform:uppercase}
-    .ptier{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:16px;text-transform:uppercase}
-    .pamt{font-family:'Open Sans',sans-serif;font-size:52px;line-height:1;margin-bottom:4px}
-    .pamt sup{font-size:20px;vertical-align:super;font-family:'Open Sans',sans-serif;font-weight:400}
-    .pper{font-size:13px;color:var(--muted);margin-bottom:16px}
-    .pdesc{font-size:13px;color:var(--muted);line-height:1.6;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:20px}
-    .pfs{display:flex;flex-direction:column;gap:9px;margin-bottom:28px}
-    .pf{display:flex;gap:10px;font-size:13px;align-items:flex-start}
+    .pbadge{position:absolute;top:14px;right:14px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:3px 9px;border-radius:3px;letter-spacing:1px}
+    .ptier{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:14px;text-transform:uppercase}
+    .pamt{font-size:48px;font-weight:800;line-height:1;margin-bottom:4px}
+    .pamt sup{font-size:18px;vertical-align:super;font-weight:400}
+    .pper{font-size:13px;color:var(--muted);margin-bottom:14px}
+    .pdesc{font-size:13px;color:var(--muted);line-height:1.6;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:18px}
+    .pfs{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+    .pf{display:flex;gap:9px;font-size:13px}
     .pf.ok{color:var(--text)}
     .pf.no{color:var(--muted)}
-    .pf-i{flex-shrink:0;margin-top:2px;font-size:12px}
-    .pbtn{width:100%;padding:12px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+    .pbtn{width:100%;padding:12px;border-radius:6px;font-size:13px;font-weight:700;transition:all .2s}
     .pbtn.pri{background:var(--accent);color:#fff;border:none}
-    .pbtn.pri:hover{background:#3d6fff;box-shadow:0 4px 16px rgba(79,127,255,0.3)}
+    .pbtn.pri:hover{background:#3d6fff}
     .pbtn.sec{background:transparent;color:var(--soft);border:1px solid var(--border)}
     .pbtn.sec:hover{border-color:rgba(255,255,255,0.2);color:var(--text)}
     .pbtn.gld{background:var(--accent2);color:#0a0b0f;border:none}
-    .pbtn.gld:hover{background:#d4b87a;box-shadow:0 4px 16px rgba(200,169,110,0.3)}
+    .pbtn.gld:hover{background:#d4b87a}
 
-    .faq{display:flex;flex-direction:column;gap:1px;margin-top:48px;background:var(--border);border-radius:10px;overflow:hidden}
-    .fi2{background:var(--bg)}
-    .fq{padding:18px 20px;font-size:14px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;transition:background .2s}
+    .faq-list{margin-top:40px;display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:10px;overflow:hidden}
+    .fi{background:var(--bg)}
+    .fq{padding:16px 18px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:14px;transition:background .2s}
     .fq:hover{background:var(--bg2)}
     .fq-i{color:var(--muted);font-size:16px;transition:transform .25s;flex-shrink:0}
-    .fa{padding:0 20px 16px;font-size:13px;color:var(--muted);line-height:1.75;display:none}
-    .fi2.open .fa{display:block}
-    .fi2.open .fq-i{transform:rotate(45deg)}
+    .fa{padding:0 18px 14px;font-size:13px;color:var(--muted);line-height:1.75;display:none}
+    .fi.open .fa{display:block}
+    .fi.open .fq-i{transform:rotate(45deg)}
 
-    .fcta{border:1px solid var(--border);border-radius:14px;padding:80px 48px;text-align:center;position:relative;overflow:hidden;background:var(--bg2)}
-    .fcta::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(79,127,255,0.08),transparent 70%);pointer-events:none}
-    .fcta h2{font-size:clamp(28px,4vw,48px);letter-spacing:-1px;margin-bottom:14px;position:relative}
-    .fcta p{font-size:16px;color:var(--muted);max-width:440px;margin:0 auto 36px;line-height:1.7;position:relative}
+    .fcta{border:1px solid var(--border);border-radius:14px;padding:72px 40px;text-align:center;background:var(--bg2);position:relative;overflow:hidden}
+    .fcta::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:500px;height:250px;background:radial-gradient(ellipse,rgba(79,127,255,0.08),transparent 70%);pointer-events:none}
+    .fcta h2{font-size:clamp(24px,3.5vw,42px);font-weight:800;letter-spacing:-1px;margin-bottom:12px;position:relative}
+    .fcta p{font-size:15px;color:var(--muted);max-width:420px;margin:0 auto 32px;line-height:1.7;position:relative}
     .fcta-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative}
-    .ftrust{margin-top:20px;font-size:12px;color:var(--muted);position:relative}
+    .ftrust{margin-top:16px;font-size:12px;color:var(--muted);position:relative}
 
-    footer{border-top:1px solid var(--border);padding:36px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;max-width:1080px;margin:0 auto}
-    .fl{font-family:'Open Sans',sans-serif;font-weight:800;font-size:16px}
+    footer{border-top:1px solid var(--border);padding:32px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;max-width:1080px;margin:0 auto}
+    .fl{font-weight:800;font-size:16px}
     .fl span{color:var(--accent)}
-    .flinks{display:flex;gap:24px}
+    .flinks{display:flex;gap:20px}
     .flinks a{font-size:12px;color:var(--muted);transition:color .2s}
     .flinks a:hover{color:var(--text)}
 
+    /* ── APP ── */
+    #page-app{display:none}
+    #page-pricing{display:none}
+
+    /* App nav extra */
+    .app-nav-info{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .plan-pill{display:flex;align-items:center;gap:5px;background:rgba(79,127,255,0.1);border:1px solid rgba(79,127,255,0.2);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .2s}
+    .plan-pill:hover{border-color:var(--accent)}
+    .plan-dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite}
+    .avatar{width:30px;height:30px;border-radius:50%;background:rgba(79,127,255,0.15);border:2px solid rgba(79,127,255,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer}
+
+    .app-wrap{max-width:600px;margin:0 auto;padding:80px 20px 40px}
+    .app-title{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px}
+    .app-sub{font-size:14px;color:var(--muted);margin-bottom:32px}
+
+    .search-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px}
+    .field-label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:.5px;text-transform:uppercase}
+    .field-input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.05);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:500;transition:border-color .2s}
+    .field-input:focus{border-color:rgba(79,127,255,0.5)}
+    .field-input::placeholder{color:#3a3f52}
+    .vs-grid{display:grid;grid-template-columns:1fr 32px 1fr;gap:8px;align-items:end;margin-bottom:14px}
+    .vs-sep{text-align:center;padding-bottom:11px;font-weight:800;font-size:12px;color:var(--muted)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .upgrade-note{display:none;margin-bottom:14px;padding:10px 14px;background:rgba(79,127,255,0.07);border:1px solid rgba(79,127,255,0.18);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .upgrade-note span{font-size:12px;color:var(--accent)}
+    .upgrade-note button{font-size:11px;color:var(--accent);background:rgba(79,127,255,0.15);border:1px solid rgba(79,127,255,0.3);border-radius:5px;padding:3px 10px;font-weight:700}
+    .examples{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+    .examples p{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+    .ex-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .ex-chip{padding:4px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s}
+    .ex-chip:hover{color:var(--text);border-color:rgba(255,255,255,0.18)}
+
+    /* Loading state */
+    .loading-wrap{text-align:center;padding:60px 20px}
+    .loading-title{font-size:18px;font-weight:700;margin-bottom:24px}
+    .steps-list{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:left;max-width:340px;margin:0 auto}
+    .lstep{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+    .lstep:last-child{border-bottom:none}
+    .lstep-dot{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);flex-shrink:0}
+    .lstep.active .lstep-dot{background:rgba(79,127,255,0.1);border-color:rgba(79,127,255,0.3)}
+    .lstep.done .lstep-dot{background:rgba(62,207,142,0.12);border-color:rgba(62,207,142,0.3);color:#3ecf8e}
+    .lstep-text{font-size:13px;color:var(--muted)}
+    .lstep.active .lstep-text{color:var(--text);font-weight:600}
+    .lstep.done .lstep-text{color:var(--muted)}
+
+    /* Results */
+    .result-hero{background:linear-gradient(135deg,rgba(79,127,255,0.06),transparent);border:1px solid rgba(79,127,255,0.12);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+    .r-name{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+    .r-sub{font-size:12px;color:var(--muted);margin-top:3px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+    .kpi{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+    .kpi-l{font-size:8px;color:var(--muted);letter-spacing:1px;font-weight:700;margin-bottom:5px;text-transform:uppercase}
+    .kpi-v{font-size:18px;font-weight:800}
+
+    .rtabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto}
+    .rtab{padding:9px 14px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;background:transparent;border-top:none;border-left:none;border-right:none;font-family:inherit}
+    .rtab.on{color:var(--text);border-bottom-color:var(--accent)}
+    .rpanel{display:none}
+    .rpanel.on{display:block}
+
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
+    .card-title{font-size:10px;color:var(--muted);letter-spacing:1.5px;font-weight:700;margin-bottom:12px;text-transform:uppercase}
+    .bar-row{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+    .bar-name{font-size:11px;color:var(--soft);width:80px;flex-shrink:0}
+    .bar-track{flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:3px}
+    .bar-pct{font-size:11px;font-weight:700;min-width:32px;text-align:right}
+    .kw-cloud{display:flex;flex-wrap:wrap;gap:6px}
+    .kw{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700}
+    .item-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+    .item-row:last-child{border-bottom:none}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+
+    .brecha-card{padding:12px 14px;border-radius:8px;border:1px solid;border-left-width:3px;margin-bottom:9px}
+    .bc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .bc-dim{font-size:13px;font-weight:700}
+    .bc-label{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+    .bc-bar{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .bc-name{font-size:10px;width:60px;flex-shrink:0}
+    .bc-desc{font-size:12px;color:var(--muted)}
+
+    .action-item{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:flex-start;padding:14px;background:rgba(79,127,255,0.04);border:1px solid rgba(79,127,255,0.1);border-radius:9px;margin-bottom:9px}
+    .action-num{width:32px;height:32px;border-radius:50%;background:rgba(79,127,255,0.1);border:2px solid rgba(79,127,255,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--accent)}
+    .action-title{font-size:14px;font-weight:700;margin-bottom:4px}
+    .action-reason{font-size:12px;color:var(--muted);line-height:1.5}
+    .plazo{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap}
+
+    .lock-box{background:rgba(79,127,255,0.05);border:2px dashed rgba(79,127,255,0.25);border-radius:10px;padding:32px;text-align:center;margin-top:16px}
+    .lock-box h3{font-size:15px;font-weight:700;margin-bottom:6px}
+    .lock-box p{font-size:13px;color:var(--muted);margin-bottom:18px}
+
+    /* Pricing page */
+    #page-pricing .price-wrap{max-width:920px;margin:0 auto;padding:80px 20px 40px;text-align:center}
+    #page-pricing h1{font-size:clamp(24px,4vw,40px);font-weight:800;letter-spacing:-1px;margin-bottom:10px}
+    #page-pricing p.sub{font-size:15px;color:var(--muted);margin-bottom:40px}
+    .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:12px;overflow:hidden;text-align:left}
+
+    /* Modal */
     .overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}
     .overlay.open{display:flex}
-    .modal{background:var(--bg2);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:36px;width:100%;max-width:400px;position:relative;animation:fadeUp .2s ease;box-shadow:0 40px 80px rgba(0,0,0,0.6)}
-    .mcl{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
-    .mlogo{font-family:'Open Sans',sans-serif;font-weight:800;font-size:20px;text-align:center;margin-bottom:4px}
-    .mlogo span{color:var(--accent)}
-    .msub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px}
-    .msw{display:flex;background:rgba(255,255,255,0.04);border-radius:8px;padding:3px;margin-bottom:22px}
-    .mst{flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:500;text-align:center;cursor:pointer;transition:all .2s;color:var(--muted);border:none;background:transparent;font-family:inherit}
-    .mst.active{background:rgba(255,255,255,0.07);color:var(--text);font-weight:600}
-    .gbtn{width:100%;padding:12px;border-radius:8px;background:#fff;color:#1a1a1a;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:all .2s}
-    .gbtn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.3)}
-    .sep{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .sep-l{flex:1;height:1px;background:var(--border)}
-    .sep span{font-size:12px;color:var(--muted)}
-    .fg{margin-bottom:10px}
-    .fg input{width:100%;padding:11px 13px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
-    .fg input:focus{border-color:rgba(79,127,255,0.5)}
-    .fg input::placeholder{color:#3a3f52}
+    .modal{background:var(--bg2);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:32px;width:100%;max-width:400px;position:relative;animation:fadeUp .2s ease;box-shadow:0 40px 80px rgba(0,0,0,0.6)}
+    .modal-x{position:absolute;top:12px;right:12px;background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:4px}
+    .modal-logo{font-weight:800;font-size:20px;text-align:center;margin-bottom:4px}
+    .modal-logo span{color:var(--accent)}
+    .modal-tag{font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px}
+    .modal-tabs{display:flex;background:rgba(255,255,255,0.04);border-radius:8px;padding:3px;margin-bottom:20px}
+    .mtab{flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:500;text-align:center;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:inherit;transition:all .2s}
+    .mtab.on{background:rgba(255,255,255,0.07);color:var(--text);font-weight:700}
+    .gbtn{width:100%;padding:12px;border-radius:8px;background:#fff;color:#1a1a1a;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:all .2s}
+    .gbtn:hover{transform:translateY(-1px)}
+    .mdiv{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+    .mdiv-l{flex:1;height:1px;background:var(--border)}
+    .mdiv span{font-size:12px;color:var(--muted)}
+    .mfield{margin-bottom:10px}
+    .mfield input{width:100%;padding:11px 13px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .2s}
+    .mfield input:focus{border-color:rgba(79,127,255,0.5)}
+    .mfield input::placeholder{color:#3a3f52}
     .merr{padding:9px 13px;background:rgba(245,101,101,0.08);border:1px solid rgba(245,101,101,0.2);border-radius:6px;font-size:12px;color:var(--red);margin-bottom:10px;display:none}
-    .msub2{width:100%;padding:12px;border-radius:7px;font-size:14px;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:inherit;margin-top:4px;transition:all .2s;box-shadow:0 4px 16px rgba(79,127,255,0.25)}
-    .msub2:hover{background:#3d6fff}
-    .mfine{text-align:center;font-size:11px;color:var(--muted);margin-top:14px;line-height:1.6}
+    .msubmit{width:100%;padding:12px;border-radius:7px;font-size:14px;font-weight:800;background:var(--accent);color:#fff;border:none;cursor:pointer;font-family:inherit;margin-top:4px;transition:all .2s;box-shadow:0 4px 16px rgba(79,127,255,0.25)}
+    .msubmit:hover{background:#3d6fff}
+    .mfine{text-align:center;font-size:11px;color:var(--muted);margin-top:12px}
     .mfine a{color:var(--accent)}
+    .mspinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
 
-    .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
-
-    .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
-    .reveal.in{opacity:1;transform:translateY(0)}
-
-    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
+    /* Responsive */
     @media(max-width:860px){
-      nav{padding:0 20px}
-      .hero{padding:100px 20px 60px}
-      .hero h1{letter-spacing:-1px}
-      .inner,.inner-sm{padding:64px 20px}
-      .pgrid,.fblock,.steps-row,.tgrid,.pgrid2{grid-template-columns:1fr}
-      .fblock.rev{direction:ltr}
-      .steps-row,.pgrid2{background:transparent;gap:12px}
+      .pgrid,.tgrid,.pgrid2,.steps-row,.price-grid{grid-template-columns:1fr}
+      .steps-row,.pgrid2,.price-grid{background:transparent;gap:12px}
       .si,.pcol{border:1px solid var(--border);border-radius:10px}
-      .mockup-body{grid-template-columns:1fr}
-      .m-side{display:none}
-      .m-kpis{grid-template-columns:repeat(2,1fr)}
-      .fcta{padding:40px 20px}
-      .fcta h2{font-size:28px}
-      footer{padding:28px 20px;flex-direction:column;text-align:center;gap:16px}
-      .flinks{flex-wrap:wrap;justify-content:center}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+      .vs-grid{grid-template-columns:1fr;gap:10px}
+      .vs-sep{display:none}
+      .inner{padding:60px 20px}
     }
     @media(max-width:480px){
-      .hero-actions{flex-direction:column;width:100%}
+      .hero-btns{flex-direction:column;width:100%}
       .btn-primary,.btn-outline{width:100%;text-align:center}
-      .m-kpis{grid-template-columns:repeat(2,1fr)}
-      .tgrid{gap:12px}
+      .row2{grid-template-columns:1fr}
+      .kpis{grid-template-columns:1fr 1fr}
     }
   </style>
 </head>
 <body>
 
-<nav id="nb">
-  <a href="#" class="nav-logo" aria-label="AdRadar inicio">Ad<span>Radar</span></a>
-  <div class="nav-right">
-    <button class="btn-ghost" onclick="openModal('login')">Iniciar sesión</button>
-    <button class="btn-cta" onclick="openModal('register')">Crear cuenta</button>
-    <button class="ham" id="ham" aria-label="Abrir menú" aria-expanded="false" onclick="toggleMenu()">
+<!-- ═══ LOADING ═══ -->
+<div id="page-loading">
+  <div class="sp"></div>
+  <p>Cargando AdRadar...</p>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="navbar" style="display:none">
+  <a href="#" class="nav-logo" onclick="if(window._userLoggedIn)return false;">Ad<span>Radar</span></a>
+  <div class="nav-r" id="nav-r">
+    <button class="btn-ghost" id="nav-login" onclick="openModal('login')">Iniciar sesión</button>
+    <button class="btn-cta" id="nav-signup" onclick="openModal('register')">Crear cuenta</button>
+    <button class="ham" id="ham" onclick="toggleMenu()">
       <span></span><span></span><span></span>
     </button>
+  </div>
+  <!-- App nav items (hidden until logged in) -->
+  <div class="app-nav-info" id="app-nav" style="display:none">
+    <div class="plan-pill" id="plan-pill" onclick="showPricing()">
+      <span class="plan-dot" id="plan-dot" style="background:var(--accent)"></span>
+      <span id="plan-name" style="font-size:11px;font-weight:700;color:var(--accent)">FREE</span>
+      <span style="font-size:10px;color:var(--muted)">· Actualizar</span>
+    </div>
+    <span id="queries-count" style="font-size:11px;color:var(--muted)"></span>
+    <div class="avatar" id="user-avatar" onclick="doLogout()" title="Cerrar sesión">U</div>
   </div>
 </nav>
 
 <!-- Drawer -->
-<div class="nav-drawer" id="drawer" role="dialog" aria-label="Menú de navegación">
-  <nav class="drawer-links" aria-label="Secciones">
-    <a href="#how" onclick="closeMenu()">Cómo funciona</a>
-    <a href="#feat" onclick="closeMenu()">Funcionalidades</a>
-    <a href="#pricing" onclick="closeMenu()">Precios</a>
+<div class="drawer" id="drawer">
+  <nav class="drawer-links">
+    <a href="#problems" onclick="closeMenu()">Por qué AdRadar</a>
+    <a href="#steps" onclick="closeMenu()">Cómo funciona</a>
+    <a href="#pricing-section" onclick="closeMenu()">Precios</a>
     <a href="#faq" onclick="closeMenu()">FAQ</a>
   </nav>
   <div class="drawer-ctas">
@@ -300,459 +326,905 @@
   </div>
 </div>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-tag"><div class="tag-line"></div>Inteligencia competitiva con IA<div class="tag-line"></div></div>
-  <h1>Descubre exactamente qué hace<br/>tu competencia <em>en internet</em></h1>
-  <p class="hero-sub">Canales, inversión, keywords y estrategia publicitaria. Análisis completo en segundos, sin agencias ni tecnicismos.</p>
-  <div class="hero-actions">
-    <button class="btn-primary" onclick="openModal('register')">Comenzar gratis — sin tarjeta</button>
-    <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">Ver cómo funciona</button>
-  </div>
-  <p class="hero-trust"><strong>+500 pymes</strong> ya usan AdRadar para tomar mejores decisiones de marketing</p>
-  <div class="mockup-wrap">
-    <div class="mockup">
-      <div class="mockup-chrome">
-        <div class="c-dot" style="background:#ff5f57"></div>
-        <div class="c-dot" style="background:#febc2e"></div>
-        <div class="c-dot" style="background:#28c840"></div>
-        <div class="c-addr">adradar.app</div>
-      </div>
-      <div class="mockup-body">
-        <div class="m-side">
-          <div class="m-lbl">Monitoreando</div>
-          <div class="m-item on"><div class="m-dot" style="background:#4f7fff"></div>Falabella</div>
-          <div class="m-item off"><div class="m-dot" style="background:#c8a96e"></div>Ripley</div>
-          <div class="m-item off"><div class="m-dot" style="background:#3ecf8e"></div>Paris</div>
-          <div class="m-item off" style="border:1px dashed rgba(255,255,255,0.08)"><div class="m-dot" style="background:var(--muted)"></div>Agregar</div>
-          <div class="m-score">
-            <div style="font-size:9px;color:#3ecf8e;font-weight:700;letter-spacing:1px;margin-bottom:5px">SCORE MARCA</div>
-            <div style="font-size:26px;font-weight:700;color:#3ecf8e">8.4</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px">vs 7.1 competidor</div>
-          </div>
-        </div>
-        <div class="m-main">
-          <div class="m-tabs">
-            <div class="m-tab on">Resumen</div>
-            <div class="m-tab off">Canales</div>
-            <div class="m-tab off">Keywords</div>
-            <div class="m-tab off">Plan de acción</div>
-          </div>
-          <div class="m-kpis">
-            <div class="m-kpi" style="border-top:2px solid #4f7fff"><div class="m-kl">SHARE DE VOZ</div><div class="m-kv" style="color:#4f7fff">34%</div></div>
-            <div class="m-kpi" style="border-top:2px solid #c8a96e"><div class="m-kl">ACTIVIDAD</div><div class="m-kv" style="color:#c8a96e;font-size:14px">Alta</div></div>
-            <div class="m-kpi" style="border-top:2px solid #3ecf8e"><div class="m-kl">PLATAFORMAS</div><div class="m-kv" style="color:#3ecf8e">6</div></div>
-            <div class="m-kpi" style="border-top:2px solid #4f7fff"><div class="m-kl">TENDENCIA</div><div class="m-kv" style="color:#3ecf8e;font-size:12px">Creciendo</div></div>
-          </div>
-          <div class="m-sec">INVERSIÓN POR CANAL</div>
-          <div class="m-bars">
-            <div class="m-br"><div class="m-bn">Instagram</div><div class="m-bt"><div class="m-bf" style="width:38%;background:#e1306c"></div></div><div class="m-bp" style="color:#e1306c">38%</div></div>
-            <div class="m-br"><div class="m-bn">Facebook</div><div class="m-bt"><div class="m-bf" style="width:28%;background:#4f7fff"></div></div><div class="m-bp" style="color:#4f7fff">28%</div></div>
-            <div class="m-br"><div class="m-bn">Google Ads</div><div class="m-bt"><div class="m-bf" style="width:20%;background:#c8a96e"></div></div><div class="m-bp" style="color:#c8a96e">20%</div></div>
-            <div class="m-br"><div class="m-bn">TikTok</div><div class="m-bt"><div class="m-bf" style="width:14%;background:#3ecf8e"></div></div><div class="m-bp" style="color:#3ecf8e">14%</div></div>
-          </div>
-          <div class="m-sec">KEYWORDS PRINCIPALES</div>
-          <div class="m-chips">
-            <div class="m-chip" style="background:rgba(79,127,255,0.1);color:#7fa6ff">descuentos online</div>
-            <div class="m-chip" style="background:rgba(200,169,110,0.1);color:#c8a96e">cyber monday</div>
-            <div class="m-chip" style="background:rgba(62,207,142,0.1);color:#3ecf8e">envío gratis</div>
-            <div class="m-chip" style="background:rgba(255,255,255,0.05);color:var(--muted)">+18 más</div>
-          </div>
-        </div>
-      </div>
+<!-- ═══ LANDING ═══ -->
+<div id="page-landing">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-tag">Inteligencia competitiva con IA</div>
+    <h1>Descubre exactamente qué hace<br/>tu competencia <em>en internet</em></h1>
+    <p class="hero-sub">Canales, inversión, keywords y estrategia publicitaria. Análisis completo en segundos, sin agencias.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="openModal('register')">Comenzar gratis — sin tarjeta</button>
+      <button class="btn-outline" onclick="document.getElementById('steps').scrollIntoView({behavior:'smooth'})">Ver cómo funciona</button>
     </div>
-  </div>
-</section>
+    <p class="hero-note"><strong>+500 pymes</strong> ya usan AdRadar para tomar mejores decisiones de marketing</p>
+  </section>
 
-<!-- STRIP -->
-<div class="strip">
-  <div class="strip-lbl">Utilizado por pymes de todo Latinoamérica</div>
-  <div class="strip-logos">
-    <div class="strip-logo">TiendaCL</div>
-    <div class="strip-logo">ModaPeru</div>
-    <div class="strip-logo">MercadoMX</div>
-    <div class="strip-logo">DigitalAR</div>
-    <div class="strip-logo">StartupCO</div>
-    <div class="strip-logo">BrandBR</div>
-  </div>
-</div>
-
-<!-- PROBLEM -->
-<section class="section">
-  <div class="inner">
-    <div class="reveal">
+  <!-- Problema -->
+  <section class="section" id="problems" style="background:var(--bg2)">
+    <div class="inner">
       <div class="stag" style="background:rgba(245,101,101,0.08);color:var(--red)">El problema</div>
       <h2 class="sh">¿Te suena familiar?</h2>
-      <p class="sp">Tu competencia crece y tú no sabes qué está haciendo diferente. Eso termina hoy.</p>
+      <p class="sp">Tu competencia crece y tú no sabes qué está haciendo diferente.</p>
+      <div class="pgrid">
+        <div class="pc"><div class="pc-n">01</div><h3>"¿Por qué mi competencia vende más?"</h3><p>Ves que sus ventas crecen pero no entiendes en qué plataformas se anuncian ni qué mensajes usan.</p></div>
+        <div class="pc"><div class="pc-n">02</div><h3>"Invierto en publicidad sin saber si lo hago bien"</h3><p>Gastas en Instagram o Google pero no sabes si tu competencia invierte más o en canales más efectivos.</p></div>
+        <div class="pc"><div class="pc-n">03</div><h3>"No sé qué palabras clave usar"</h3><p>Tu competencia aparece antes en búsquedas y anuncios. Necesitas saber qué términos están usando.</p></div>
+        <div class="pc"><div class="pc-n">04</div><h3>"Contratar una agencia cuesta demasiado"</h3><p>Un análisis competitivo profesional cuesta $500–2.000 USD. Con AdRadar lo tienes en segundos.</p></div>
+      </div>
     </div>
-    <div class="pgrid reveal">
-      <div class="pc"><div class="pc-n">01</div><h3>"¿Por qué mi competencia vende más?"</h3><p>Ves que sus ventas crecen pero no entiendes qué están haciendo en publicidad, en qué plataformas y con qué mensajes concretos.</p></div>
-      <div class="pc"><div class="pc-n">02</div><h3>"Invierto en publicidad sin saber si lo hago bien"</h3><p>Gastas en Instagram o Google pero no sabes si tu competencia invierte más, menos, o en otros canales más efectivos para tu industria.</p></div>
-      <div class="pc"><div class="pc-n">03</div><h3>"No sé qué palabras clave debería usar"</h3><p>Tu competencia aparece antes que tú en búsquedas y anuncios. Necesitas saber exactamente qué términos están usando para lograrlo.</p></div>
-      <div class="pc"><div class="pc-n">04</div><h3>"Contratar una agencia cuesta demasiado"</h3><p>Un análisis competitivo profesional cuesta entre $500 y $2.000 USD. Con AdRadar lo tienes en segundos, actualizado y a una fracción del costo.</p></div>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- FEATURES -->
-<section class="section" id="feat" style="background:var(--bg2)">
-  <div class="inner">
-    <div class="reveal">
-      <div class="stag" style="background:rgba(79,127,255,0.08);color:var(--accent)">Funcionalidades</div>
-      <h2 class="sh">Todo lo que necesitas saber<br/>sobre tu competencia</h2>
-    </div>
-    <div class="fblock reveal">
-      <div class="flist">
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4"/></svg></div>
-          <div><h4>Canales y distribución de inversión</h4><p>Descubre en qué plataformas se anuncia tu competencia y cuánto porcentaje de su presupuesto destina a cada canal — Instagram, Facebook, TikTok, Google, YouTube.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
-          <div><h4>Keywords y mensajes clave</h4><p>Conoce exactamente qué palabras clave, hashtags y mensajes emocionales están usando para atraer a sus clientes y construir su marca.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.866v6.268a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg></div>
-          <div><h4>Campañas activas e historial</h4><p>Ve qué campañas están corriendo ahora mismo, qué mensajes y creativos usan, y cuáles han funcionado mejor en los últimos meses.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div>
-          <div><h4>Alianzas e influencers</h4><p>Detecta con qué influencers, medios y marcas se está asociando tu competencia para amplificar su presencia y llegar a nuevas audiencias.</p></div>
-        </div>
-      </div>
-      <div class="fv">
-        <div class="fv-h">Inversión por plataforma</div>
-        <div style="display:flex;flex-direction:column;gap:11px">
-          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--soft);width:82px;flex-shrink:0">Instagram</span><div style="flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="width:38%;height:100%;background:#e1306c;border-radius:3px"></div></div><span style="font-size:11px;font-weight:700;color:#e1306c;min-width:32px;text-align:right">38%</span></div>
-          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--soft);width:82px;flex-shrink:0">Facebook</span><div style="flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="width:28%;height:100%;background:#4f7fff;border-radius:3px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff;min-width:32px;text-align:right">28%</span></div>
-          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--soft);width:82px;flex-shrink:0">Google Ads</span><div style="flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:#c8a96e;border-radius:3px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e;min-width:32px;text-align:right">20%</span></div>
-          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--soft);width:82px;flex-shrink:0">TikTok</span><div style="flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="width:9%;height:100%;background:#3ecf8e;border-radius:3px"></div></div><span style="font-size:11px;font-weight:700;color:#3ecf8e;min-width:32px;text-align:right">9%</span></div>
-          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:12px;color:var(--soft);width:82px;flex-shrink:0">YouTube</span><div style="flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden"><div style="width:5%;height:100%;background:#ff4d4d;border-radius:3px"></div></div><span style="font-size:11px;font-weight:700;color:#ff4d4d;min-width:32px;text-align:right">5%</span></div>
-        </div>
-        <div style="margin-top:16px;padding:12px 14px;background:rgba(79,127,255,0.06);border:1px solid rgba(79,127,255,0.12);border-radius:8px">
-          <div style="font-size:9px;color:var(--accent);font-weight:700;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">Insight detectado</div>
-          <div style="font-size:12px;color:var(--soft);line-height:1.6">Tu competencia invierte el 47% en redes sociales pagadas. Tu presencia es principalmente orgánica — hay una brecha clara de inversión que puedes aprovechar.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fblock rev reveal" style="margin-top:80px">
-      <div class="flist">
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
-          <div><h4>Comparativa tu marca vs la competencia</h4><p>Pon tu marca frente a tu competidor y ve en qué dimensiones van adelante y dónde tú llevas ventaja real.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
-          <div><h4>Brechas y oportunidades concretas</h4><p>La IA detecta automáticamente las áreas donde puedes ganarle terreno a tu competencia en el corto plazo.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
-          <div><h4>Plan de acción con plazos reales</h4><p>No solo datos. Recibes un plan concreto: qué hacer esta semana, este mes y este trimestre para mejorar tu posición competitiva.</p></div>
-        </div>
-        <div class="fi">
-          <div class="fi-ico"><svg fill="none" stroke="#4f7fff" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div>
-          <div><h4>Informes listos para presentar</h4><p>Genera análisis competitivos que puedes compartir con tu equipo o clientes. Claros, estructurados y accionables.</p></div>
-        </div>
-      </div>
-      <div class="fv">
-        <div class="fv-h">Comparativa de brechas</div>
-        <div style="display:flex;flex-direction:column;gap:9px">
-          <div style="padding:10px 12px;background:rgba(62,207,142,0.04);border:1px solid rgba(62,207,142,0.1);border-radius:7px;border-left:3px solid #3ecf8e">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span style="font-weight:600;color:var(--text)">Share de Voz</span><span style="color:#3ecf8e;font-weight:700;font-size:10px">Tu marca lidera</span></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;color:#4f7fff;width:60px">Tu marca</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:80%;height:100%;background:#4f7fff;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff">8</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#c8a96e;width:60px">Competidor</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:60%;height:100%;background:#c8a96e;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e">6</span></div>
-          </div>
-          <div style="padding:10px 12px;background:rgba(245,101,101,0.04);border:1px solid rgba(245,101,101,0.1);border-radius:7px;border-left:3px solid #f56565">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span style="font-weight:600;color:var(--text)">Inversión Digital</span><span style="color:#f56565;font-weight:700;font-size:10px">Ellos lideran</span></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;color:#4f7fff;width:60px">Tu marca</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:50%;height:100%;background:#4f7fff;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff">5</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#c8a96e;width:60px">Competidor</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:80%;height:100%;background:#c8a96e;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e">8</span></div>
-          </div>
-          <div style="padding:10px 12px;background:rgba(62,207,142,0.04);border:1px solid rgba(62,207,142,0.1);border-radius:7px;border-left:3px solid #3ecf8e">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span style="font-weight:600;color:var(--text)">Engagement</span><span style="color:#3ecf8e;font-weight:700;font-size:10px">Tu marca lidera</span></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;color:#4f7fff;width:60px">Tu marca</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:90%;height:100%;background:#4f7fff;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff">9</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#c8a96e;width:60px">Competidor</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:70%;height:100%;background:#c8a96e;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e">7</span></div>
-          </div>
-          <div style="padding:10px 12px;background:rgba(62,207,142,0.04);border:1px solid rgba(62,207,142,0.1);border-radius:7px;border-left:3px solid #3ecf8e">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span style="font-weight:600;color:var(--text)">Sentimiento</span><span style="color:#3ecf8e;font-weight:700;font-size:10px">Tu marca lidera</span></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;color:#4f7fff;width:60px">Tu marca</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:70%;height:100%;background:#4f7fff;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff">7</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#c8a96e;width:60px">Competidor</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:60%;height:100%;background:#c8a96e;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e">6</span></div>
-          </div>
-          <div style="padding:10px 12px;background:rgba(245,101,101,0.04);border:1px solid rgba(245,101,101,0.1);border-radius:7px;border-left:3px solid #f56565">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:8px"><span style="font-weight:600;color:var(--text)">Presencia en Redes</span><span style="color:#f56565;font-weight:700;font-size:10px">Ellos lideran</span></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;color:#4f7fff;width:60px">Tu marca</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:80%;height:100%;background:#4f7fff;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#4f7fff">8</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:#c8a96e;width:60px">Competidor</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.05);border-radius:2px"><div style="width:90%;height:100%;background:#c8a96e;border-radius:2px"></div></div><span style="font-size:11px;font-weight:700;color:#c8a96e">9</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW -->
-<section class="section" id="how">
-  <div class="inner" style="text-align:center">
-    <div class="reveal">
-      <div class="stag" style="background:rgba(200,169,110,0.08);color:var(--accent2);margin:0 auto 20px">Cómo funciona</div>
+  <!-- Cómo funciona -->
+  <section class="section" id="steps">
+    <div class="inner" style="text-align:center">
+      <div class="stag" style="background:rgba(200,169,110,0.08);color:var(--accent2);margin:0 auto 16px">Cómo funciona</div>
       <h2 class="sh">En 3 pasos, tienes el análisis</h2>
       <p class="sp" style="margin:0 auto">Sin configuraciones complejas. Sin agencias. Sin esperar días.</p>
+      <div class="steps-row">
+        <div class="si"><div class="si-n">01</div><h3>Escribe el nombre</h3><p>El nombre de tu marca y el de tu competidor. Sin links, sin IDs, sin tecnicismos.</p></div>
+        <div class="si"><div class="si-n">02</div><h3>La IA analiza todo</h3><p>En segundos mapea canales, inversión, keywords, campañas y estrategia completa.</p></div>
+        <div class="si"><div class="si-n">03</div><h3>Actúa con ventaja</h3><p>Recibe brechas detectadas y un plan de acción concreto para superar a tu competencia.</p></div>
+      </div>
+      <div style="margin-top:36px">
+        <button class="btn-primary" style="font-size:15px;padding:14px 32px" onclick="openModal('register')">Probarlo gratis ahora</button>
+      </div>
     </div>
-    <div class="steps-row reveal">
-      <div class="si"><div class="si-n">01</div><h3>Escribe el nombre</h3><p>Ingresa el nombre de tu marca y el de tu competidor. Sin links, sin IDs, sin tecnicismos. Solo el nombre.</p></div>
-      <div class="si"><div class="si-n">02</div><h3>La IA analiza todo</h3><p>En segundos, nuestra inteligencia artificial mapea canales, inversión, keywords, campañas, tono y estrategia completa.</p></div>
-      <div class="si"><div class="si-n">03</div><h3>Actúa con ventaja</h3><p>Recibe un informe con brechas detectadas y un plan de acción concreto para superar a tu competencia.</p></div>
-    </div>
-    <div style="margin-top:40px" class="reveal">
-      <button class="btn-primary" style="font-size:15px;padding:14px 32px" onclick="openModal('register')">Probarlo ahora — es gratis</button>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- TESTIMONIALS -->
-<section class="section" style="background:var(--bg2)">
-  <div class="inner">
-    <div class="reveal">
+  <!-- Testimonios -->
+  <section class="section" style="background:var(--bg2)">
+    <div class="inner">
       <div class="stag" style="background:rgba(200,169,110,0.08);color:var(--accent2)">Testimonios</div>
       <h2 class="sh">Lo que dicen nuestros usuarios</h2>
-    </div>
-    <div class="tgrid reveal">
-      <div class="tc">
-        <div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-        <blockquote>"Descubrí que mi competencia invertía el doble en TikTok. En un mes activé mi canal y mis ventas subieron 40%. AdRadar me abrió los ojos."</blockquote>
-        <div class="tc-au"><div class="tc-av" style="background:rgba(79,127,255,0.12);color:#7fa6ff">C</div><div><div class="tc-name">Camila Torres</div><div class="tc-role">Tienda de ropa — Santiago, Chile</div></div></div>
-      </div>
-      <div class="tc">
-        <div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-        <blockquote>"Antes pagaba $800 USD a una agencia por un análisis competitivo. Con AdRadar lo tengo en 30 segundos y actualizado. Indispensable."</blockquote>
-        <div class="tc-au"><div class="tc-av" style="background:rgba(200,169,110,0.12);color:#c8a96e">R</div><div><div class="tc-name">Rodrigo Méndez</div><div class="tc-role">E-commerce de electrónica — México DF</div></div></div>
-      </div>
-      <div class="tc">
-        <div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
-        <blockquote>"Uso AdRadar para preparar reportes mensuales. Muestro a mis clientes exactamente qué hace la competencia y qué deben hacer. Se impresionan."</blockquote>
-        <div class="tc-au"><div class="tc-av" style="background:rgba(62,207,142,0.12);color:#3ecf8e">M</div><div><div class="tc-name">Marcela Vega</div><div class="tc-role">Consultora de marketing — Bogotá, Colombia</div></div></div>
+      <div class="tgrid">
+        <div class="tc"><div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div><blockquote>"Descubrí que mi competencia invertía el doble en TikTok. En un mes activé mi canal y mis ventas subieron 40%."</blockquote><div class="tc-au"><div class="tc-av" style="background:rgba(79,127,255,0.12);color:#7fa6ff">C</div><div><div class="tc-name">Camila Torres</div><div class="tc-role">Tienda de ropa — Santiago, Chile</div></div></div></div>
+        <div class="tc"><div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div><blockquote>"Antes pagaba $800 USD a una agencia por un análisis competitivo. Con AdRadar lo tengo en 30 segundos."</blockquote><div class="tc-au"><div class="tc-av" style="background:rgba(200,169,110,0.12);color:#c8a96e">R</div><div><div class="tc-name">Rodrigo Méndez</div><div class="tc-role">E-commerce — Ciudad de México</div></div></div></div>
+        <div class="tc"><div class="tc-stars"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div><blockquote>"Uso AdRadar para reportes mensuales. Les muestro a mis clientes qué hace la competencia y qué deben hacer."</blockquote><div class="tc-au"><div class="tc-av" style="background:rgba(62,207,142,0.12);color:#3ecf8e">M</div><div><div class="tc-name">Marcela Vega</div><div class="tc-role">Consultora de marketing — Bogotá</div></div></div></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- PRICING -->
-<section class="section" id="pricing">
-  <div class="inner">
-    <div class="reveal" style="text-align:center">
-      <div class="stag" style="background:rgba(79,127,255,0.08);color:var(--accent);margin:0 auto 20px">Precios</div>
+  <!-- Precios -->
+  <section class="section" id="pricing-section">
+    <div class="inner" style="text-align:center">
+      <div class="stag" style="background:rgba(79,127,255,0.08);color:var(--accent);margin:0 auto 16px">Precios</div>
       <h2 class="sh">Simple y transparente</h2>
-      <p class="sp" style="margin:0 auto">Empieza gratis. Paga solo cuando necesites más.</p>
+      <p class="sp" style="margin:0 auto 40px">Empieza gratis. Paga solo cuando necesites más.</p>
+      <div class="pgrid2" style="text-align:left">
+        <div class="pcol">
+          <div class="ptier">Gratis</div>
+          <div class="pamt">$0</div>
+          <div class="pper">para siempre</div>
+          <p class="pdesc">Para explorar sin tarjeta de crédito.</p>
+          <div class="pfs">
+            <div class="pf ok"><span style="color:var(--muted)">—</span> Análisis básico de 1 competidor</div>
+            <div class="pf ok"><span style="color:var(--muted)">—</span> Resumen de canales y tono</div>
+            <div class="pf ok"><span style="color:var(--muted)">—</span> 3 consultas por mes</div>
+            <div class="pf no"><span>—</span> Análisis completo de inversión</div>
+            <div class="pf no"><span>—</span> Comparativa tu marca vs competencia</div>
+            <div class="pf no"><span>—</span> Plan de acción personalizado</div>
+          </div>
+          <button class="pbtn sec" onclick="openModal('register')">Comenzar gratis</button>
+        </div>
+        <div class="pcol hl">
+          <div class="ptier" style="color:var(--accent)">Pro</div>
+          <div class="pamt" style="color:var(--accent)"><sup>$</sup>15</div>
+          <div class="pper">USD por mes</div>
+          <p class="pdesc">Análisis completo de cualquier marca.</p>
+          <div class="pfs">
+            <div class="pf ok"><span style="color:var(--accent)">—</span> Todo lo del plan Gratis</div>
+            <div class="pf ok"><span style="color:var(--accent)">—</span> Inversión y canales en detalle</div>
+            <div class="pf ok"><span style="color:var(--accent)">—</span> Keywords y campañas activas</div>
+            <div class="pf ok"><span style="color:var(--accent)">—</span> 15 consultas por mes</div>
+            <div class="pf no"><span>—</span> Comparativa vs tu propia marca</div>
+            <div class="pf no"><span>—</span> Plan de acción personalizado</div>
+          </div>
+          <button class="pbtn pri" onclick="openModal('register')">Contratar Pro — $15/mes</button>
+        </div>
+        <div class="pcol hl" style="border-top:1px solid rgba(200,169,110,0.2)">
+          <div class="pbadge">Más popular</div>
+          <div class="ptier" style="color:var(--accent2)">Business</div>
+          <div class="pamt" style="color:var(--accent2)"><sup>$</sup>25</div>
+          <div class="pper">USD por mes</div>
+          <p class="pdesc">Comparativa completa y plan de acción.</p>
+          <div class="pfs">
+            <div class="pf ok"><span style="color:var(--accent2)">—</span> Todo lo del plan Pro</div>
+            <div class="pf ok"><span style="color:var(--accent2)">—</span> Comparativa tu marca vs competencia</div>
+            <div class="pf ok"><span style="color:var(--accent2)">—</span> Brechas y oportunidades detectadas</div>
+            <div class="pf ok"><span style="color:var(--accent2)">—</span> Plan de acción con plazos</div>
+            <div class="pf ok"><span style="color:var(--accent2)">—</span> Consultas ilimitadas</div>
+          </div>
+          <button class="pbtn gld" onclick="openModal('register')">Contratar Business — $25/mes</button>
+        </div>
+      </div>
+      <p style="margin-top:16px;font-size:12px;color:var(--muted)">Pagos con Stripe — Cancela cuando quieras — Sin contratos</p>
     </div>
-    <div class="pgrid2 reveal">
-      <div class="pcol">
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq" style="background:var(--bg2)">
+    <div class="inner" style="max-width:720px">
+      <div class="stag" style="background:rgba(255,255,255,0.04);color:var(--muted)">FAQ</div>
+      <h2 class="sh">Preguntas frecuentes</h2>
+      <div class="faq-list">
+        <div class="fi" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Los datos son reales?</span><span class="fq-i">+</span></div><div class="fa">AdRadar usa IA entrenada con datos reales de campañas. El análisis es una estimación experta basada en información públicamente disponible.</div></div>
+        <div class="fi" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Necesito tarjeta para el plan gratis?</span><span class="fq-i">+</span></div><div class="fa">No. Crea tu cuenta y usa el plan gratis sin ningún dato de pago.</div></div>
+        <div class="fi" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Puedo analizar cualquier empresa?</span><span class="fq-i">+</span></div><div class="fa">Sí, cualquier marca con presencia digital. Funciona mejor con empresas activas en redes sociales y publicidad online.</div></div>
+        <div class="fi" onclick="this.classList.toggle('open')"><div class="fq"><span>¿En qué países funciona?</span><span class="fq-i">+</span></div><div class="fa">Chile, México, Colombia, Argentina, Perú, Brasil, España y EE.UU. con análisis específico por mercado.</div></div>
+        <div class="fi" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Sirve para preparar informes para clientes?</span><span class="fq-i">+</span></div><div class="fa">Sí, ideal para agencias y consultores. El plan Business está pensado para comparativas que presentas a clientes.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Final -->
+  <section class="section">
+    <div class="inner">
+      <div class="fcta">
+        <h2>¿Listo para saber qué hace<br/><em style="color:var(--accent2)">tu competencia?</em></h2>
+        <p>Únete a más de 500 pymes que ya toman mejores decisiones de marketing. Comienza hoy, gratis.</p>
+        <div class="fcta-btns">
+          <button class="btn-primary" style="font-size:15px;padding:14px 32px" onclick="openModal('register')">Comenzar gratis ahora</button>
+          <button class="btn-outline" onclick="openModal('login')">Ya tengo cuenta</button>
+        </div>
+        <p class="ftrust">Sin tarjeta · Gratis para siempre en plan básico · Cancela cuando quieras</p>
+      </div>
+    </div>
+  </section>
+
+  <div style="border-top:1px solid var(--border)">
+    <footer>
+      <div class="fl">Ad<span>Radar</span></div>
+      <div class="flinks"><a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Contacto</a></div>
+      <div style="font-size:12px;color:var(--muted)">2025 AdRadar — Latinoamérica</div>
+    </footer>
+  </div>
+</div><!-- end landing -->
+
+<!-- ═══ PRICING PAGE ═══ -->
+<div id="page-pricing">
+  <div class="price-wrap">
+    <h1>Elige tu plan</h1>
+    <p class="sub">Empieza gratis. Actualiza cuando necesites más.</p>
+    <div class="price-grid">
+      <div class="pcol" style="border:1px solid var(--border);border-radius:12px">
         <div class="ptier">Gratis</div>
         <div class="pamt">$0</div>
         <div class="pper">para siempre</div>
-        <p class="pdesc">Para explorar y ver si AdRadar es lo que necesitas. Sin tarjeta de crédito.</p>
+        <p class="pdesc">Para explorar sin tarjeta.</p>
         <div class="pfs">
-          <div class="pf ok"><span class="pf-i" style="color:var(--muted)">—</span> Análisis básico de 1 competidor</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--muted)">—</span> Resumen de canales y tono</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--muted)">—</span> 3 consultas por mes</div>
-          <div class="pf no"><span class="pf-i">—</span> Análisis completo de inversión</div>
-          <div class="pf no"><span class="pf-i">—</span> Keywords y campañas detalladas</div>
-          <div class="pf no"><span class="pf-i">—</span> Comparativa tu marca vs competencia</div>
-          <div class="pf no"><span class="pf-i">—</span> Plan de acción personalizado</div>
+          <div class="pf ok"><span style="color:var(--muted)">—</span> Análisis básico</div>
+          <div class="pf ok"><span style="color:var(--muted)">—</span> 3 consultas/mes</div>
+          <div class="pf no"><span>—</span> Análisis completo</div>
+          <div class="pf no"><span>—</span> Comparativa</div>
         </div>
-        <button class="pbtn sec" onclick="openModal('register')">Comenzar gratis</button>
+        <button class="pbtn sec" onclick="selectPlan('free')">Continuar gratis</button>
       </div>
-      <div class="pcol hl">
+      <div class="pcol hl" style="border:2px solid rgba(79,127,255,0.3);border-radius:12px">
         <div class="ptier" style="color:var(--accent)">Pro</div>
         <div class="pamt" style="color:var(--accent)"><sup>$</sup>15</div>
-        <div class="pper">USD por mes</div>
-        <p class="pdesc">Análisis completo de cualquier marca. Ideal para entender a fondo a tu competencia.</p>
+        <div class="pper">USD/mes</div>
+        <p class="pdesc">Análisis completo de cualquier marca.</p>
         <div class="pfs">
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent)">—</span> Todo lo del plan Gratis</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent)">—</span> Inversión y canales en detalle</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent)">—</span> Keywords y tipos de anuncios</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent)">—</span> Campañas activas e historial</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent)">—</span> 15 consultas por mes</div>
-          <div class="pf no"><span class="pf-i">—</span> Comparativa vs tu propia marca</div>
-          <div class="pf no"><span class="pf-i">—</span> Plan de acción personalizado</div>
+          <div class="pf ok"><span style="color:var(--accent)">—</span> Todo lo del plan Gratis</div>
+          <div class="pf ok"><span style="color:var(--accent)">—</span> Inversión y keywords</div>
+          <div class="pf ok"><span style="color:var(--accent)">—</span> 15 consultas/mes</div>
+          <div class="pf no"><span>—</span> Comparativa</div>
         </div>
-        <button class="pbtn pri" onclick="openModal('register')">Contratar Pro — $15/mes</button>
+        <button class="pbtn pri" onclick="selectPlan('pro')" id="btn-plan-pro">Contratar Pro — $15/mes</button>
       </div>
-      <div class="pcol hl" style="border-top:1px solid rgba(200,169,110,0.2)">
+      <div class="pcol hl" style="border:2px solid rgba(200,169,110,0.3);border-radius:12px">
         <div class="pbadge">Más popular</div>
         <div class="ptier" style="color:var(--accent2)">Business</div>
         <div class="pamt" style="color:var(--accent2)"><sup>$</sup>25</div>
-        <div class="pper">USD por mes</div>
-        <p class="pdesc">Para quien quiere ganarle a la competencia con inteligencia. Comparativa completa y plan de acción.</p>
+        <div class="pper">USD/mes</div>
+        <p class="pdesc">Comparativa completa + plan de acción.</p>
         <div class="pfs">
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Todo lo del plan Pro</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Comparativa tu marca vs competencia</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Brechas y oportunidades detectadas</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Plan de acción con plazos concretos</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Keywords que usa el competidor y tú no</div>
-          <div class="pf ok"><span class="pf-i" style="color:var(--accent2)">—</span> Consultas ilimitadas</div>
+          <div class="pf ok"><span style="color:var(--accent2)">—</span> Todo lo del plan Pro</div>
+          <div class="pf ok"><span style="color:var(--accent2)">—</span> Comparativa tu marca vs ellos</div>
+          <div class="pf ok"><span style="color:var(--accent2)">—</span> Plan de acción con plazos</div>
+          <div class="pf ok"><span style="color:var(--accent2)">—</span> Consultas ilimitadas</div>
         </div>
-        <button class="pbtn gld" onclick="openModal('register')">Contratar Business — $25/mes</button>
+        <button class="pbtn gld" onclick="selectPlan('business')" id="btn-plan-business">Contratar Business — $25/mes</button>
       </div>
     </div>
-    <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--muted)" class="reveal">
-      Pagos seguros con Stripe — Cancela cuando quieras — Sin contratos ni permanencia
-    </div>
+    <p style="margin-top:20px;font-size:12px;color:var(--muted)">Pagos con Stripe · Cancela cuando quieras</p>
+    <button onclick="showApp()" style="margin-top:16px;font-size:12px;color:var(--muted);background:transparent;border:none;cursor:pointer">Continuar con plan actual →</button>
   </div>
-</section>
-
-<!-- FAQ -->
-<section class="section" id="faq" style="background:var(--bg2)">
-  <div class="inner-sm">
-    <div class="reveal">
-      <div class="stag" style="background:rgba(255,255,255,0.04);color:var(--muted)">FAQ</div>
-      <h2 class="sh">Preguntas frecuentes</h2>
-    </div>
-    <div class="faq reveal">
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Los datos son reales o generados por IA?</span><span class="fq-i">+</span></div><div class="fa">AdRadar usa inteligencia artificial entrenada con datos reales de campañas y estrategias de miles de marcas. El análisis es una estimación experta basada en información públicamente disponible — no datos privados de las empresas.</div></div>
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Necesito tarjeta de crédito para el plan gratis?</span><span class="fq-i">+</span></div><div class="fa">No. Puedes crear tu cuenta y usar el plan gratis sin ingresar ningún dato de pago. Solo pagas si decides actualizar a Pro o Business.</div></div>
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Puedo analizar cualquier empresa?</span><span class="fq-i">+</span></div><div class="fa">Sí, cualquier marca o empresa con presencia digital. Funciona especialmente bien con empresas que tienen actividad en redes sociales y publicidad online.</div></div>
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Cada cuánto se actualiza la información?</span><span class="fq-i">+</span></div><div class="fa">Cada vez que realizas una consulta, la IA genera un análisis fresco basado en la información más reciente disponible. No hay datos en caché desactualizados.</div></div>
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿Sirve para preparar informes para clientes?</span><span class="fq-i">+</span></div><div class="fa">Sí, es ideal para agencias y consultores. El plan Business está diseñado para quienes necesitan comparativas completas para presentar a clientes o equipos directivos.</div></div>
-      <div class="fi2" onclick="this.classList.toggle('open')"><div class="fq"><span>¿En qué países funciona?</span><span class="fq-i">+</span></div><div class="fa">Funciona en Chile, México, Colombia, Argentina, Perú, Brasil, España y EE.UU., con análisis específico por mercado y contexto local.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA FINAL -->
-<section class="section">
-  <div class="inner">
-    <div class="fcta reveal">
-      <h2>¿Listo para saber qué hace<br/><em>tu competencia?</em></h2>
-      <p>Únete a más de 500 pymes que ya toman mejores decisiones de marketing gracias a AdRadar. Comienza hoy, gratis.</p>
-      <div class="fcta-btns">
-        <button class="btn-primary" style="font-size:15px;padding:14px 32px" onclick="openModal('register')">Comenzar gratis ahora</button>
-        <button class="btn-outline" onclick="openModal('login')">Ya tengo cuenta</button>
-      </div>
-      <p class="ftrust">Sin tarjeta · Gratis para siempre en plan básico · Cancela cuando quieras</p>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<div style="border-top:1px solid var(--border)">
-  <footer>
-    <div class="fl">Ad<span>Radar</span></div>
-    <div class="flinks"><a href="#">Términos de uso</a><a href="#">Privacidad</a><a href="#">Contacto</a></div>
-    <div style="font-size:12px;color:var(--muted)">2025 AdRadar — Hecho en Latinoamérica</div>
-  </footer>
 </div>
 
-<!-- MODAL -->
+<!-- ═══ APP ═══ -->
+<div id="page-app">
+  <div class="app-wrap">
+    <div id="app-search">
+      <h1 class="app-title">Analizar competencia</h1>
+      <p class="app-sub" id="app-sub">Escribe el nombre de tu marca y un competidor para ver el análisis completo.</p>
+      <div class="search-card">
+        <div id="compare-block">
+          <div class="vs-grid">
+            <div>
+              <label class="field-label" style="color:var(--accent)">Tu marca</label>
+              <input class="field-input" id="input-my" placeholder="Ej: Falabella" style="border-color:rgba(79,127,255,0.25)" onfocus="this.style.borderColor='rgba(79,127,255,0.6)'" onblur="this.style.borderColor='rgba(79,127,255,0.25)'"/>
+            </div>
+            <div class="vs-sep">VS</div>
+            <div>
+              <label class="field-label" style="color:var(--accent2)">Competidor</label>
+              <input class="field-input" id="input-comp" placeholder="Ej: Ripley" style="border-color:rgba(200,169,110,0.25)" onfocus="this.style.borderColor='rgba(200,169,110,0.6)'" onblur="this.style.borderColor='rgba(200,169,110,0.25)'"/>
+            </div>
+          </div>
+        </div>
+        <div id="solo-block" style="display:none;margin-bottom:14px">
+          <label class="field-label">Marca a analizar</label>
+          <input class="field-input" id="input-solo" placeholder="Escribe el nombre de la empresa..."/>
+        </div>
+        <div id="upgrade-note" class="upgrade-note">
+          <span>Actualiza a Business para comparar tu marca vs competencia</span>
+          <button onclick="showPricing()">Ver planes</button>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="field-label">País</label>
+            <select class="field-input" id="input-country">
+              <option value="CL">🇨🇱 Chile</option>
+              <option value="MX">🇲🇽 México</option>
+              <option value="CO">🇨🇴 Colombia</option>
+              <option value="AR">🇦🇷 Argentina</option>
+              <option value="PE">🇵🇪 Perú</option>
+              <option value="BR">🇧🇷 Brasil</option>
+              <option value="ES">🇪🇸 España</option>
+              <option value="US">🇺🇸 EE.UU.</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Período</label>
+            <select class="field-input" id="input-period">
+              <option value="1m">1 mes</option>
+              <option value="3m">3 meses</option>
+              <option value="6m" selected>6 meses</option>
+              <option value="12m">1 año</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" style="width:100%;padding:14px;font-size:15px" id="btn-search" onclick="startSearch()">Analizar →</button>
+        <div class="examples">
+          <p>Ejemplos rápidos</p>
+          <div class="ex-chips">
+            <span class="ex-chip" onclick="setExample('Falabella','Ripley')"><span style="color:var(--accent)">Falabella</span> vs <span style="color:var(--accent2)">Ripley</span></span>
+            <span class="ex-chip" onclick="setExample('Entel','Movistar')"><span style="color:var(--accent)">Entel</span> vs <span style="color:var(--accent2)">Movistar</span></span>
+            <span class="ex-chip" onclick="setExample('Nike','Adidas')"><span style="color:var(--accent)">Nike</span> vs <span style="color:var(--accent2)">Adidas</span></span>
+            <span class="ex-chip" onclick="setExample('Coca-Cola','Pepsi')"><span style="color:var(--accent)">Coca-Cola</span> vs <span style="color:var(--accent2)">Pepsi</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="app-loading" style="display:none">
+      <div class="loading-wrap">
+        <div class="loading-title" id="loading-title">Analizando...</div>
+        <div class="steps-list">
+          <div class="lstep active" id="lstep-0"><div class="lstep-dot"><div style="width:10px;height:10px;border:1.5px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div></div><div class="lstep-text" id="ltext-0">Analizando marca...</div></div>
+          <div class="lstep" id="lstep-1"><div class="lstep-dot">2</div><div class="lstep-text" id="ltext-1">Analizando competidor...</div></div>
+          <div class="lstep" id="lstep-2"><div class="lstep-dot">3</div><div class="lstep-text">Comparando estrategias...</div></div>
+          <div class="lstep" id="lstep-3"><div class="lstep-dot">4</div><div class="lstep-text">Generando insights...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="app-results" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL AUTH ═══ -->
 <div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <button class="mcl" onclick="closeModal()">&#x2715;</button>
-    <div class="mlogo">Ad<span>Radar</span></div>
-    <p class="msub" id="msub">Crea tu cuenta gratis y empieza a analizar</p>
-    <div class="msw">
-      <button class="mst active" id="mbt-r" onclick="switchModal('register')">Crear cuenta</button>
-      <button class="mst" id="mbt-l" onclick="switchModal('login')">Iniciar sesión</button>
+    <button class="modal-x" onclick="closeModal()">&#x2715;</button>
+    <div class="modal-logo">Ad<span>Radar</span></div>
+    <p class="modal-tag" id="modal-tag">Crea tu cuenta gratis y empieza a analizar</p>
+    <div class="modal-tabs">
+      <button class="mtab on" id="mt-reg" onclick="switchModal('register')">Crear cuenta</button>
+      <button class="mtab" id="mt-log" onclick="switchModal('login')">Iniciar sesión</button>
     </div>
-    <button class="gbtn" id="gbtn" onclick="loginGoogle()">
+    <button class="gbtn" id="btn-google" onclick="doGoogleLogin()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px"/>
       Continuar con Google
     </button>
-    <div class="sep"><div class="sep-l"></div><span>o con email</span><div class="sep-l"></div></div>
+    <div class="mdiv"><div class="mdiv-l"></div><span>o con email</span><div class="mdiv-l"></div></div>
     <div class="merr" id="merr"></div>
-    <div id="fn" class="fg"><input type="text" id="mn" placeholder="Tu nombre"/></div>
-    <div class="fg"><input type="email" id="me" placeholder="Email"/></div>
-    <div class="fg"><input type="password" id="mp" placeholder="Contraseña" onkeydown="if(event.key==='Enter')submitModal()"/></div>
-    <button class="msub2" id="msb" onclick="submitModal()">Crear cuenta gratis</button>
+    <div id="f-name" class="mfield"><input type="text" id="m-name" placeholder="Tu nombre"/></div>
+    <div class="mfield"><input type="email" id="m-email" placeholder="Email"/></div>
+    <div class="mfield"><input type="password" id="m-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doEmailAuth()"/></div>
+    <button class="msubmit" id="m-submit" onclick="doEmailAuth()">Crear cuenta gratis</button>
     <p class="mfine">Al continuar aceptas nuestros <a href="#">Términos</a> y <a href="#">Privacidad</a></p>
   </div>
 </div>
 
+<!-- ═══ FIREBASE ═══ -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup,
+           createUserWithEmailAndPassword, signInWithEmailAndPassword,
+           signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app = initializeApp({ apiKey:"AIzaSyClJrnZT8hamQTipTQUYMNbXPjRpYRMINc", authDomain:"adradar-a337d.firebaseapp.com", projectId:"adradar-a337d", storageBucket:"adradar-a337d.firebasestorage.app", messagingSenderId:"156988772524", appId:"1:156988772524:web:7d13766b75632ab3d8cf09" });
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const gp = new GoogleAuthProvider();
-
-  async function onAuth(user) {
-    const ref = doc(db,"users",user.uid);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) await setDoc(ref,{plan:"free",queries:0,email:user.email,name:user.displayName||user.email});
-    window.location.href = "index.html";
-  }
-
-  window.loginGoogle = async () => {
-    setLoading(true);
-    try { await onAuth((await signInWithPopup(auth,gp)).user); }
-    catch(e) { showErr(e.code==="auth/unauthorized-domain"?"Dominio no autorizado. Agrégalo en Firebase Console > Authentication > Authorized domains.":e.message); setLoading(false); }
+  const FB = {
+    apiKey:"AIzaSyClJrnZT8hamQTipTQUYMNbXPjRpYRMINc",
+    authDomain:"adradar-a337d.firebaseapp.com",
+    projectId:"adradar-a337d",
+    storageBucket:"adradar-a337d.firebasestorage.app",
+    messagingSenderId:"156988772524",
+    appId:"1:156988772524:web:7d13766b75632ab3d8cf09"
   };
 
-  window.submitModal = async () => {
-    const reg = document.getElementById("mbt-r").classList.contains("active");
-    const name = document.getElementById("mn").value.trim();
-    const email = document.getElementById("me").value.trim();
-    const pass = document.getElementById("mp").value;
-    if (!email||!pass) { showErr("Completa tu email y contraseña."); return; }
-    if (reg&&!name) { showErr("Escribe tu nombre."); return; }
-    setLoading(true);
+  const app  = initializeApp(FB);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+  const gp   = new GoogleAuthProvider();
+
+  // ── State ──
+  window._user     = null;
+  window._userData = null;
+  window._userLoggedIn = false;
+
+  // ── Auth state listener ──
+  onAuthStateChanged(auth, async (user) => {
+    const loading = document.getElementById("page-loading");
+
+    if (user) {
+      window._user = user;
+      window._userLoggedIn = true;
+
+      // Load or create user doc
+      const ref  = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        window._userData = { plan:"free", queries:0, email:user.email, name:user.displayName||user.email };
+        await setDoc(ref, window._userData);
+      } else {
+        window._userData = snap.data();
+      }
+
+      // Show app UI
+      loading.style.display = "none";
+      showNavApp();
+      showApp();
+
+    } else {
+      window._user = null;
+      window._userData = null;
+      window._userLoggedIn = false;
+
+      // Show landing
+      loading.style.display = "none";
+      showNavLanding();
+      document.getElementById("page-landing").style.display = "block";
+      document.getElementById("page-app").style.display = "none";
+      document.getElementById("page-pricing").style.display = "none";
+      document.getElementById("navbar").style.display = "flex";
+    }
+  });
+
+  // ── Google Login ──
+  window.doGoogleLogin = async () => {
+    setModalLoading(true);
     try {
-      const r = reg ? await createUserWithEmailAndPassword(auth,email,pass) : await signInWithEmailAndPassword(auth,email,pass);
-      await onAuth(r.user);
+      await signInWithPopup(auth, gp);
+      closeModal();
     } catch(e) {
-      const m = {"auth/email-already-in-use":"Este email ya tiene cuenta. Inicia sesión.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/user-not-found":"No encontramos esa cuenta.","auth/wrong-password":"Contraseña incorrecta.","auth/invalid-email":"Email inválido."};
-      showErr(m[e.code]||e.message); setLoading(false);
+      showErr(e.code === "auth/unauthorized-domain"
+        ? "Dominio no autorizado. Ve a Firebase Console > Authentication > Authorized domains y agrega este dominio."
+        : e.message);
+      setModalLoading(false);
     }
   };
 
-  function setLoading(v) {
-    const b = document.getElementById("msb");
-    const g = document.getElementById("gbtn");
-    const reg = document.getElementById("mbt-r").classList.contains("active");
-    b.innerHTML = v ? '<div class="spinner"></div>' : (reg?"Crear cuenta gratis":"Iniciar sesión");
+  // ── Email Auth ──
+  window.doEmailAuth = async () => {
+    const isReg = document.getElementById("mt-reg").classList.contains("on");
+    const name  = document.getElementById("m-name").value.trim();
+    const email = document.getElementById("m-email").value.trim();
+    const pass  = document.getElementById("m-pass").value;
+    if (!email || !pass) { showErr("Completa email y contraseña."); return; }
+    if (isReg && !name) { showErr("Escribe tu nombre."); return; }
+    setModalLoading(true);
+    try {
+      if (isReg) {
+        await createUserWithEmailAndPassword(auth, email, pass);
+      } else {
+        await signInWithEmailAndPassword(auth, email, pass);
+      }
+      closeModal();
+    } catch(e) {
+      const msgs = {
+        "auth/email-already-in-use":"Este email ya tiene cuenta. Inicia sesión.",
+        "auth/weak-password":"La contraseña debe tener al menos 6 caracteres.",
+        "auth/user-not-found":"No encontramos esa cuenta.",
+        "auth/wrong-password":"Contraseña incorrecta.",
+        "auth/invalid-credential":"Email o contraseña incorrectos.",
+        "auth/invalid-email":"Email inválido."
+      };
+      showErr(msgs[e.code] || e.message);
+      setModalLoading(false);
+    }
+  };
+
+  // ── Logout ──
+  window.doLogout = async () => {
+    await signOut(auth);
+  };
+
+  // ── Update plan ──
+  window.savePlan = async (planId) => {
+    if (!window._user) return;
+    window._userData.plan = planId;
+    await updateDoc(doc(db, "users", window._user.uid), { plan: planId });
+  };
+
+  // ── Update queries ──
+  window.saveQuery = async () => {
+    if (!window._user) return;
+    const q = (window._userData.queries || 0) + 1;
+    window._userData.queries = q;
+    await updateDoc(doc(db, "users", window._user.uid), { queries: q });
+    updateQueriesUI();
+  };
+
+  function setModalLoading(v) {
+    const b = document.getElementById("m-submit");
+    const g = document.getElementById("btn-google");
+    const isReg = document.getElementById("mt-reg").classList.contains("on");
+    b.innerHTML = v ? '<div class="mspinner"></div>' : (isReg ? "Crear cuenta gratis" : "Iniciar sesión");
     g.disabled = v;
   }
-  function showErr(msg) { const e=document.getElementById("merr"); e.textContent=msg; e.style.display="block"; }
+
+  function showErr(msg) {
+    const e = document.getElementById("merr");
+    e.textContent = msg;
+    e.style.display = "block";
+  }
 </script>
 
+<!-- ═══ APP LOGIC ═══ -->
 <script>
-  function toggleMenu(){
-    const h=document.getElementById("ham");
-    const d=document.getElementById("drawer");
-    const open=d.classList.toggle("open");
-    h.classList.toggle("open",open);
-    h.setAttribute("aria-expanded",open);
-    document.body.style.overflow=open?"hidden":"";
-  }
-  function closeMenu(){
-    document.getElementById("ham").classList.remove("open");
-    document.getElementById("ham").setAttribute("aria-expanded","false");
-    document.getElementById("drawer").classList.remove("open");
-    document.body.style.overflow="";
-  }
-  // Close drawer on Escape
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu();});
+const PLANS = {
+  free:     { name:"FREE",     color:"#6b7280", queries:3,   compare:false, full:false },
+  pro:      { name:"PRO",      color:"#4f7fff", queries:15,  compare:false, full:true  },
+  business: { name:"BUSINESS", color:"#c8a96e", queries:9999,compare:true,  full:true  }
+};
 
-  function openModal(m) { closeMenu(); document.getElementById("modal").classList.add("open"); switchModal(m||"register"); }
-  function closeModal() { document.getElementById("modal").classList.remove("open"); document.getElementById("merr").style.display="none"; }
-  function switchModal(m) {
-    const r = m==="register";
-    document.getElementById("mbt-r").classList.toggle("active",r);
-    document.getElementById("mbt-l").classList.toggle("active",!r);
-    document.getElementById("fn").style.display = r?"block":"none";
-    document.getElementById("msb").textContent = r?"Crear cuenta gratis":"Iniciar sesión";
-    document.getElementById("msub").textContent = r?"Crea tu cuenta gratis y empieza a analizar":"Bienvenido de vuelta a AdRadar";
-    document.getElementById("merr").style.display="none";
+const COUNTRIES = {CL:"Chile",MX:"México",CO:"Colombia",AR:"Argentina",PE:"Perú",BR:"Brasil",ES:"España",US:"EE.UU."};
+const PERIODS   = {"1m":"el último mes","3m":"los últimos 3 meses","6m":"los últimos 6 meses","12m":"el último año"};
+
+// ── Navigation ──
+function showNavLanding() {
+  document.getElementById("navbar").style.display = "flex";
+  document.getElementById("nav-r").style.display = "flex";
+  document.getElementById("app-nav").style.display = "none";
+}
+function showNavApp() {
+  document.getElementById("navbar").style.display = "flex";
+  document.getElementById("nav-r").style.display = "none";
+  document.getElementById("app-nav").style.display = "flex";
+  updateQueriesUI();
+}
+function updateQueriesUI() {
+  if (!window._userData) return;
+  const plan = PLANS[window._userData.plan || "free"];
+  document.getElementById("plan-dot").style.background = plan.color;
+  document.getElementById("plan-name").textContent = plan.name;
+  document.getElementById("plan-name").style.color = plan.color;
+  const q = window._userData.queries || 0;
+  const lim = plan.queries;
+  document.getElementById("queries-count").textContent = lim === 9999 ? "∞ consultas" : `${q}/${lim} consultas`;
+  document.getElementById("user-avatar").textContent = (window._userData.name || window._userData.email || "U")[0].toUpperCase();
+}
+function showApp() {
+  document.getElementById("page-landing").style.display = "none";
+  document.getElementById("page-pricing").style.display = "none";
+  document.getElementById("page-app").style.display = "block";
+  setupAppForPlan();
+}
+function showPricing() {
+  document.getElementById("page-landing").style.display = "none";
+  document.getElementById("page-app").style.display = "none";
+  document.getElementById("page-pricing").style.display = "block";
+}
+function setupAppForPlan() {
+  const plan = PLANS[window._userData?.plan || "free"];
+  const compareBlock = document.getElementById("compare-block");
+  const soloBlock    = document.getElementById("solo-block");
+  const upgradeNote  = document.getElementById("upgrade-note");
+  if (plan.compare) {
+    compareBlock.style.display = "block";
+    soloBlock.style.display    = "none";
+    upgradeNote.style.display  = "none";
+  } else {
+    compareBlock.style.display = "none";
+    soloBlock.style.display    = "block";
+    upgradeNote.style.display  = "flex";
   }
-  window.switchModal = switchModal;
+}
 
-  const io = new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in")}),{threshold:0.08});
-  document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+// ── Plan selection ──
+window.selectPlan = async (planId) => {
+  if (planId === "free") {
+    await window.savePlan("free");
+    showApp();
+    return;
+  }
+  const btn = document.getElementById("btn-plan-" + planId);
+  if (btn) btn.innerHTML = '<div class="mspinner" style="border-color:rgba(255,255,255,0.2);border-top-color:#fff"></div> Procesando...';
+  // Simulate payment (replace with real Stripe in production)
+  setTimeout(async () => {
+    await window.savePlan(planId);
+    updateQueriesUI();
+    showApp();
+  }, 1500);
+};
 
-  window.addEventListener("scroll",()=>{
-    document.getElementById("nb").style.boxShadow = scrollY>30?"0 4px 24px rgba(0,0,0,0.4)":"none";
-  });
+// ── Modal ──
+window.openModal = (m) => {
+  document.getElementById("modal").classList.add("open");
+  switchModal(m || "register");
+};
+window.closeModal = () => {
+  document.getElementById("modal").classList.remove("open");
+  document.getElementById("merr").style.display = "none";
+};
+window.switchModal = (m) => {
+  const r = m === "register";
+  document.getElementById("mt-reg").classList.toggle("on", r);
+  document.getElementById("mt-log").classList.toggle("on", !r);
+  document.getElementById("f-name").style.display = r ? "block" : "none";
+  document.getElementById("m-submit").textContent = r ? "Crear cuenta gratis" : "Iniciar sesión";
+  document.getElementById("modal-tag").textContent = r ? "Crea tu cuenta gratis y empieza a analizar" : "Bienvenido de vuelta a AdRadar";
+  document.getElementById("merr").style.display = "none";
+};
+
+// ── Hamburger ──
+window.toggleMenu = () => {
+  const h = document.getElementById("ham");
+  const d = document.getElementById("drawer");
+  const open = d.classList.toggle("open");
+  h.classList.toggle("open", open);
+  document.body.style.overflow = open ? "hidden" : "";
+};
+window.closeMenu = () => {
+  document.getElementById("ham").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+  document.body.style.overflow = "";
+};
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeMenu(); closeModal(); } });
+
+// ── FAQ ──
+document.querySelectorAll(".fi").forEach(el => {
+  el.addEventListener("click", () => el.classList.toggle("open"));
+});
+
+// ── Examples ──
+window.setExample = (my, comp) => {
+  document.getElementById("input-my").value  = my;
+  document.getElementById("input-comp").value = comp;
+  document.getElementById("input-solo").value = my;
+};
+
+// ── Search ──
+window.startSearch = async () => {
+  const plan    = PLANS[window._userData?.plan || "free"];
+  const country = document.getElementById("input-country").value;
+  const period  = document.getElementById("input-period").value;
+  const isCompare = plan.compare;
+
+  const myBrand  = isCompare ? document.getElementById("input-my").value.trim() : document.getElementById("input-solo").value.trim();
+  const compBrand = isCompare ? document.getElementById("input-comp").value.trim() : "";
+
+  if (!myBrand) { alert("Escribe el nombre de la marca."); return; }
+
+  const q = window._userData?.queries || 0;
+  if (plan.queries !== 9999 && q >= plan.queries) {
+    showPricing(); return;
+  }
+
+  document.getElementById("app-search").style.display  = "none";
+  document.getElementById("app-loading").style.display = "block";
+  document.getElementById("app-results").style.display = "none";
+
+  setStep(0, `Analizando ${myBrand}...`);
+
+  try {
+    const myData = await callAI(myBrand, country, period);
+    let compData = null, cmpData = null;
+
+    if (isCompare && compBrand) {
+      setStep(1);
+      compData = await callAI(compBrand, country, period);
+      setStep(2);
+      cmpData  = await callComparison(myData, compData, country);
+    }
+    setStep(3);
+
+    await window.saveQuery();
+    renderResults(myData, compData, cmpData, plan, country, period);
+
+    document.getElementById("app-loading").style.display  = "none";
+    document.getElementById("app-results").style.display  = "block";
+    document.getElementById("app-results").scrollIntoView({behavior:"smooth"});
+
+  } catch(e) {
+    document.getElementById("app-loading").style.display = "none";
+    document.getElementById("app-search").style.display  = "block";
+    alert("Error: " + e.message + "\n\nIntenta de nuevo.");
+  }
+};
+
+function setStep(n, txt) {
+  for (let i = 0; i < 4; i++) {
+    const s = document.getElementById("lstep-" + i);
+    if (!s) continue;
+    s.className = "lstep" + (i < n ? " done" : i === n ? " active" : "");
+    const dot = s.querySelector(".lstep-dot");
+    if (i < n) dot.innerHTML = "✓";
+    else if (i === n) dot.innerHTML = '<div style="width:10px;height:10px;border:1.5px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div>';
+    else dot.textContent = String(i + 1);
+  }
+  if (txt) document.getElementById("loading-title").textContent = txt;
+}
+
+// ── AI calls ──
+async function callAI(name, countryCode, period) {
+  const periodLabel = PERIODS[period] || "los últimos 6 meses";
+  const countryName = COUNTRIES[countryCode] || countryCode;
+  const body = {
+    model:"claude-sonnet-4-20250514",
+    max_tokens:6000,
+    messages:[{role:"user",content:`Analiza "${name}" en ${countryName} durante ${periodLabel} desde marketing digital. SOLO JSON sin texto ni backticks:
+{"nombre":"nombre","industria":"sector","descripcion":"1 línea","mensaje_principal":"slogan","tono":"cómo comunican","propuesta_valor":"diferenciador","nivel_actividad":"alto o medio o bajo","tendencia":"creciendo o estable o decreciendo","score_marca":7.5,"share_voz":28,"fortalezas":["f1","f2","f3"],"debilidades":["d1","d2"],"canales":[{"canal":"nombre","intensidad":8,"tipo":"pagado o organico o mixto","pct":30}],"inversion":[{"plataforma":"nombre","pct":30,"tipo":"pagado o organico o mixto","tendencia":"subiendo o estable o bajando"}],"keywords":[{"palabra":"kw","tipo":"marca o producto o emocion o promocion","volumen":"alto o medio o bajo"}],"campanas":[{"nombre":"campaña","plataforma":"plataforma","descripcion":"descripción","activo":true}],"alianzas":[{"partner":"nombre","tipo":"influencer o marca o medio","impacto":"alto o medio o bajo"}],"sentimiento":{"positivo":65,"neutral":20,"negativo":15,"resumen":"percepción"}}
+5 canales, 8 keywords, 5 plataformas de inversión sumando 100, 3 campañas, 3 alianzas. Solo JSON.`}]
+  };
+  const res  = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message || `Error ${res.status}`); }
+  const data = await res.json();
+  const text = data.content?.find(b=>b.type==="text")?.text || "";
+  const m    = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error("Sin respuesta estructurada. Intenta de nuevo.");
+  return JSON.parse(m[0]);
+}
+
+async function callComparison(my, comp, country) {
+  const countryName = COUNTRIES[country] || country;
+  const body = {
+    model:"claude-sonnet-4-20250514",
+    max_tokens:4000,
+    messages:[{role:"user",content:`Compara "${my.nombre}" vs "${comp.nombre}" en ${countryName}. SOLO JSON:
+{"resumen":"2 líneas comparando","lider":"${my.nombre} o ${comp.nombre}","razon_lider":"1 línea","yo_gano_en":["área1","área2","área3"],"ellos_ganan_en":["área1","área2"],"brechas":[{"dimension":"Share de Voz","yo":7,"ellos":8,"descripcion":"desc","ventaja":"yo o ellos o empate"},{"dimension":"Inversión Digital","yo":6,"ellos":8,"descripcion":"desc","ventaja":"yo o ellos o empate"},{"dimension":"Engagement","yo":8,"ellos":6,"descripcion":"desc","ventaja":"yo o ellos o empate"},{"dimension":"Sentimiento","yo":7,"ellos":7,"descripcion":"desc","ventaja":"yo o ellos o empate"},{"dimension":"Presencia Redes","yo":8,"ellos":9,"descripcion":"desc","ventaja":"yo o ellos o empate"}],"oportunidades":[{"titulo":"título","descripcion":"qué hacer","impacto":"alto o medio","plazo":"esta semana o este mes o este trimestre"}],"plan_accion":[{"numero":1,"accion":"qué hacer","por_que":"por qué","plazo":"esta semana o este mes o este trimestre"}],"keywords_solo_ellos":["kw1","kw2"],"keywords_para_ti":["kw1","kw2"]}
+4 oportunidades, 3 acciones. Solo JSON.`}]
+  };
+  const res  = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message || `Error ${res.status}`); }
+  const data = await res.json();
+  const text = data.content?.find(b=>b.type==="text")?.text || "";
+  const m    = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error("Sin comparativa. Intenta de nuevo.");
+  return JSON.parse(m[0]);
+}
+
+// ── Render results ──
+function renderResults(my, comp, cmp, plan, country, period) {
+  const myN  = my.nombre;
+  const cpN  = comp?.nombre || "";
+  const kwColors = {marca:"#4f7fff",producto:"#7b61ff",emocion:"#e84393",promocion:"#c8a96e",categoria:"#3ecf8e"};
+
+  const tabs = plan.compare && cmp
+    ? [["overview","Resumen"],["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"],["brechas","Brechas"],["plan","Plan de acción"]]
+    : [["overview","Resumen"],["canales","Canales"],["keywords","Keywords"],["campanas","Campañas"]];
+
+  const tabsHTML = tabs.map((t,i) =>
+    `<button class="rtab${i===0?" on":""}" data-tab="${t[0]}" onclick="switchTab('${t[0]}')">${t[1]}</button>`
+  ).join("");
+
+  // Overview
+  const overviewHTML = `
+    <div class="card">
+      <div class="card-title">Mensaje principal</div>
+      <div style="font-size:15px;font-weight:700;border-left:3px solid var(--accent);padding-left:12px;line-height:1.5">"${my.mensaje_principal}"</div>
+      <div style="margin-top:10px;font-size:13px;color:var(--muted)">${my.propuesta_valor}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card" style="border-top:3px solid var(--green)">
+        <div class="card-title" style="color:var(--green)">Fortalezas</div>
+        ${(my.fortalezas||[]).map(f=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--green);flex-shrink:0">→</span><span style="font-size:13px;color:#d1d5db">${f}</span></div>`).join("")}
+      </div>
+      <div class="card" style="border-top:3px solid var(--red)">
+        <div class="card-title" style="color:var(--red)">Debilidades</div>
+        ${(my.debilidades||[]).map(f=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--red);flex-shrink:0">→</span><span style="font-size:13px;color:#d1d5db">${f}</span></div>`).join("")}
+      </div>
+    </div>
+    ${cmp && comp ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+      <div class="card" style="border-top:3px solid var(--accent);background:rgba(79,127,255,0.04)">
+        <div class="card-title" style="color:var(--accent)">${myN} lidera en</div>
+        ${(cmp.yo_gano_en||[]).map(v=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--accent)">→</span><span style="font-size:13px;color:#d1d5db">${v}</span></div>`).join("")}
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2);background:rgba(200,169,110,0.04)">
+        <div class="card-title" style="color:var(--accent2)">${cpN} lidera en</div>
+        ${(cmp.ellos_ganan_en||[]).map(v=>`<div style="display:flex;gap:7px;margin-bottom:7px"><span style="color:var(--accent2)">→</span><span style="font-size:13px;color:#d1d5db">${v}</span></div>`).join("")}
+      </div>
+    </div>` : ""}
+    ${!plan.full ? `<div class="lock-box"><h3>Análisis completo en plan Pro</h3><p>Desbloquea canales, inversión, keywords y campañas detalladas.</p><button class="btn-primary" onclick="showPricing()">Ver planes — desde $15/mes</button></div>` : ""}
+  `;
+
+  // Canales
+  const canalesHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea el análisis completo de canales e inversión.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card">
+      <div class="card-title">Inversión por plataforma</div>
+      ${(my.inversion||[]).map(p=>`
+        <div class="bar-row">
+          <div class="bar-name">${p.plataforma}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%;background:var(--accent)"></div></div>
+          <div class="bar-pct" style="color:var(--accent)">${p.pct}%</div>
+          <span class="badge" style="margin-left:6px;background:${p.tipo==="pagado"?"rgba(245,101,101,0.1)":"rgba(62,207,142,0.1)"};color:${p.tipo==="pagado"?"var(--red)":"var(--green)"}">${p.tipo}</span>
+        </div>`).join("")}
+    </div>
+    <div class="card">
+      <div class="card-title">Intensidad por canal (1-10)</div>
+      ${(my.canales||[]).map((ch,i)=>`
+        <div style="display:grid;grid-template-columns:110px 1fr 36px;gap:10px;align-items:center;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:600">${ch.canal}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${ch.intensidad*10}%;background:var(--accent)"></div></div>
+          <div style="font-size:13px;font-weight:800;color:var(--accent);text-align:right">${ch.intensidad}</div>
+        </div>`).join("")}
+    </div>
+  `;
+
+  // Keywords
+  const keywordsHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea el análisis de keywords y mensajes clave.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card">
+      <div class="card-title">Keywords de ${myN}</div>
+      <div class="kw-cloud">
+        ${(my.keywords||[]).map(kw=>{
+          const c=kwColors[kw.tipo]||"#9ca3af";
+          const s=kw.volumen==="alto"?"16px":kw.volumen==="medio"?"13px":"11px";
+          const p=kw.volumen==="alto"?"7px 16px":"5px 10px";
+          return `<span class="kw" style="padding:${p};background:${c}14;border:1px solid ${c}28;font-size:${s};color:${c}">${kw.palabra}</span>`;
+        }).join("")}
+      </div>
+    </div>
+    ${cmp ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+      <div class="card" style="border-top:2px solid var(--accent2)">
+        <div class="card-title" style="color:var(--accent2)">Solo las usa el competidor</div>
+        <div class="kw-cloud">${(cmp.keywords_solo_ellos||[]).map(k=>`<span class="kw" style="background:rgba(200,169,110,0.1);color:var(--accent2)">${k}</span>`).join("")}</div>
+      </div>
+      <div class="card" style="border-top:2px solid #7b61ff">
+        <div class="card-title" style="color:#7b61ff">Oportunidades para ti</div>
+        <div class="kw-cloud">${(cmp.keywords_para_ti||[]).map(k=>`<span class="kw" style="background:rgba(123,97,255,0.1);color:#7b61ff">${k}</span>`).join("")}</div>
+      </div>
+    </div>` : ""}
+  `;
+
+  // Campañas
+  const campanasHTML = !plan.full ? `<div class="lock-box"><h3>Disponible en plan Pro</h3><p>Desbloquea campañas activas y alianzas detectadas.</p><button class="btn-primary" onclick="showPricing()">Ver planes</button></div>` : `
+    <div class="card">
+      <div class="card-title">Campañas recientes — ${myN}</div>
+      ${(my.campanas||[]).map(c=>{
+        const pColors={facebook:"#1877f2",instagram:"#e1306c",tiktok:"#69c9d0",youtube:"#f00",google:"#fbbc04"};
+        const pc=pColors[c.plataforma?.toLowerCase()]||"var(--accent)";
+        return `<div class="item-row">
+          <div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px">${c.nombre}</div>
+            <div style="font-size:12px;color:var(--muted)">${c.descripcion}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="badge" style="background:${pc}22;color:${pc}">${c.plataforma}</span>
+            <span style="font-size:11px;color:${c.activo?"var(--green)":"var(--muted)"}">${c.activo?"● Activo":"Finalizado"}</span>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="card">
+      <div class="card-title">Alianzas detectadas</div>
+      ${(my.alianzas||[]).map(al=>{
+        const tc={influencer:"#e84393",marca:"#7b61ff",medio:"#00c2ff"}[al.tipo]||"var(--accent)";
+        return `<div class="item-row">
+          <div style="font-size:14px;font-weight:600">${al.partner}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="badge" style="background:${tc}18;color:${tc}">${al.tipo}</span>
+            <span style="font-size:11px;color:${al.impacto==="alto"?"var(--green)":al.impacto==="medio"?"var(--accent2)":"var(--muted)"}">${al.impacto}</span>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  // Brechas
+  const brechasHTML = !cmp ? "" : `
+    <div style="margin-bottom:12px">
+      <div class="card" style="background:${cmp.lider===myN?"rgba(79,127,255,0.06)":"rgba(200,169,110,0.06)"};border-color:${cmp.lider===myN?"rgba(79,127,255,0.2)":"rgba(200,169,110,0.2)"}">
+        <div style="font-weight:700;font-size:16px;margin-bottom:5px">${cmp.lider===myN?myN+" va por delante":cpN+" va por delante"}</div>
+        <div style="font-size:13px;color:var(--muted)">${cmp.resumen}</div>
+      </div>
+    </div>
+    ${(cmp.brechas||[]).map(b=>{
+      const win=b.ventaja==="yo"; const tie=b.ventaja==="empate";
+      const sc=win?"#3ecf8e":tie?"#6b7280":"#f56565";
+      const diff=Math.abs((b.yo||5)-(b.ellos||5));
+      return `<div class="brecha-card" style="background:${win?"rgba(62,207,142,0.04)":"rgba(245,101,101,0.04)"};border-color:${sc};border-left-color:${sc}">
+        <div class="bc-top">
+          <div class="bc-dim">${b.dimension}</div>
+          <span class="bc-label" style="background:${sc}18;color:${sc}">${win?`+${diff.toFixed(1)} tú`:tie?"Empate":`-${diff.toFixed(1)} ellos`}</span>
+        </div>
+        <div class="bc-bar"><div class="bc-name" style="color:var(--accent)">${myN.slice(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${(b.yo/10)*100}%;background:var(--accent)"></div></div><span style="font-size:11px;font-weight:800;color:var(--accent);min-width:16px;text-align:right">${b.yo}</span></div>
+        <div class="bc-bar"><div class="bc-name" style="color:var(--accent2)">${cpN.slice(0,8)}</div><div class="bar-track"><div class="bar-fill" style="width:${(b.ellos/10)*100}%;background:var(--accent2)"></div></div><span style="font-size:11px;font-weight:800;color:var(--accent2);min-width:16px;text-align:right">${b.ellos}</span></div>
+        <div class="bc-desc">${b.descripcion}</div>
+      </div>`;
+    }).join("")}
+    ${(cmp.oportunidades||[]).map(op=>{
+      const ic=op.impacto==="alto"?"var(--green)":"var(--accent2)";
+      const pc={"esta semana":"#e84393","este mes":"var(--accent2)","este trimestre":"var(--muted)"}[op.plazo]||"var(--muted)";
+      return `<div class="card" style="background:rgba(200,169,110,0.04);border-color:rgba(200,169,110,0.12);margin-bottom:9px">
+        <div style="display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap">
+          <span class="badge" style="background:${ic}18;color:${ic}">Impacto ${op.impacto}</span>
+          <span class="badge" style="background:${pc}18;color:${pc}">${op.plazo}</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">${op.titulo}</div>
+        <div style="font-size:12px;color:var(--muted)">${op.descripcion}</div>
+      </div>`;
+    }).join("")}
+  `;
+
+  // Plan de acción
+  const planHTML = !cmp ? "" : `
+    ${(cmp.plan_accion||[]).map((a,i)=>{
+      const pc={"esta semana":"#e84393","este mes":"var(--accent2)","este trimestre":"var(--muted)"}[a.plazo]||"var(--muted)";
+      return `<div class="action-item">
+        <div class="action-num">${i+1}</div>
+        <div><div class="action-title">${a.accion}</div><div class="action-reason">${a.por_que}</div></div>
+        <span class="plazo" style="background:${pc}18;color:${pc}">${a.plazo}</span>
+      </div>`;
+    }).join("")}
+  `;
+
+  const panels = {overview:overviewHTML,canales:canalesHTML,keywords:keywordsHTML,campanas:campanasHTML,brechas:brechasHTML,plan:planHTML};
+
+  const panelsHTML = tabs.map((t,i) =>
+    `<div class="rpanel${i===0?" on":""}" id="rp-${t[0]}">${panels[t[0]]||""}</div>`
+  ).join("");
+
+  document.getElementById("app-results").innerHTML = `
+    <div class="result-hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="r-name">${myN}${cpN ? ` vs ${cpN}` : ""}</div>
+          <div class="r-sub">${COUNTRIES[country]} · ${PERIODS[period]}</div>
+        </div>
+        <button onclick="document.getElementById('app-results').style.display='none';document.getElementById('app-search').style.display='block'" style="font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">Nueva búsqueda</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi" style="border-top:2px solid var(--accent)"><div class="kpi-l">Score</div><div class="kpi-v" style="color:var(--accent)">${my.score_marca?.toFixed(1)}/10</div></div>
+        <div class="kpi" style="border-top:2px solid #7b61ff"><div class="kpi-l">Share voz</div><div class="kpi-v" style="color:#7b61ff">${my.share_voz}%</div></div>
+        <div class="kpi"><div class="kpi-l">Actividad</div><div class="kpi-v" style="font-size:14px">${my.nivel_actividad}</div></div>
+        <div class="kpi"><div class="kpi-l">Tendencia</div><div class="kpi-v" style="font-size:13px;color:${my.tendencia==="creciendo"?"var(--green)":"var(--muted)"}">${my.tendencia}</div></div>
+      </div>
+    </div>
+    <div class="rtabs">${tabsHTML}</div>
+    ${panelsHTML}
+  `;
+}
+
+window.switchTab = (name) => {
+  document.querySelectorAll(".rtab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll(".rpanel").forEach(p => p.classList.toggle("on", p.id === "rp-" + name));
+};
+
+// ── Nav scroll ──
+window.addEventListener("scroll", () => {
+  document.getElementById("navbar").style.boxShadow = scrollY > 20 ? "0 4px 20px rgba(0,0,0,0.4)" : "none";
+});
 </script>
 </body>
 </html>
