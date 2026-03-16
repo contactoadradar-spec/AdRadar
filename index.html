@@ -880,7 +880,7 @@ const PLANS = {
   pro: {
     name:"PRO", color:"#4f7fff", queries:15, compare:false, full:true,
     periods:["1m","3m","6m"],          // hasta 6 meses
-    stripeLink: "https://buy.stripe.com/test_14AbJ32QsdL16jTar12Fa00",
+    stripeLink: "https://buy.stripe.com/test_REEMPLAZA_PRO",
     label:"Pro — $15/mes",
     searchTitle:"Análisis completo de tu competencia",
     searchSub:"Elige una empresa y obtén canales, inversión, keywords, campañas y alianzas.",
@@ -889,7 +889,7 @@ const PLANS = {
   business: {
     name:"BUSINESS", color:"#c8a96e", queries:9999, compare:true, full:true,
     periods:["1m","3m","6m","12m"],    // hasta 1 año
-    stripeLink: "https://buy.stripe.com/test_dRmbJ31Mo22j6jTbv52Fa01",
+    stripeLink: "https://buy.stripe.com/test_REEMPLAZA_BUSINESS",
     label:"Business — $25/mes",
     searchTitle:"Compara tu marca vs la competencia",
     searchSub:"Escribe tu marca y un competidor. La IA analiza ambos y te dice qué hacer para ganar.",
@@ -951,9 +951,10 @@ function setupAppForPlan() {
     soloBlock.style.display    = "none";
     upgradeNote.style.display  = "none";
   } else {
+    // Non-compare plans: hide compare block, show solo input
     compareBlock.style.display = "none";
     soloBlock.style.display    = "block";
-    upgradeNote.style.display  = (!plan.compare && plan.name === "FREE") ? "flex" : "none";
+    upgradeNote.style.display  = "flex";  // always show upgrade note for non-business plans
   }
 
   // Period selector — only show allowed periods
@@ -1112,8 +1113,12 @@ window.startSearch = async () => {
   const period  = document.getElementById("input-period").value;
   const isCompare = plan.compare;
 
-  const myBrand  = isCompare ? document.getElementById("input-my").value.trim() : document.getElementById("input-solo").value.trim();
-  const compBrand = isCompare ? document.getElementById("input-comp").value.trim() : "";
+  // Read from whichever input is currently visible
+  const compareVisible = document.getElementById("compare-block").style.display !== "none";
+  const myBrand  = compareVisible
+    ? document.getElementById("input-my").value.trim()
+    : document.getElementById("input-solo").value.trim();
+  const compBrand = (isCompare && compareVisible) ? document.getElementById("input-comp").value.trim() : "";
 
   if (!myBrand) { alert("Escribe el nombre de la marca."); return; }
 
