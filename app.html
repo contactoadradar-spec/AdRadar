@@ -60,11 +60,15 @@
         } else {
           userData = snap.data();
         }
-        showScreen("pricing");
+        // Si ya tiene plan, ir directo a la app
+        if (userData.plan && userData.plan !== "") {
+          showScreen("app");
+        } else {
+          showScreen("pricing");
+        }
       } else {
-        currentUser = null;
-        userData = null;
-        showScreen("auth");
+        // No logueado — volver a la landing
+        window.location.href = "index.html";
       }
     });
 
