@@ -1053,18 +1053,18 @@ const PERIODS_LABELS = {"1m":"1 mes","3m":"3 meses","6m":"6 meses","12m":"1 año
 const PERIODS   = {"1m":"el último mes","3m":"los últimos 3 meses","6m":"los últimos 6 meses","12m":"el último año"};
 
 // ── Navigation ──
-function showNavLanding() {
+window.showNavLanding = function showNavLanding() {
   document.getElementById("navbar").style.display = "flex";
   document.getElementById("nav-r").style.display = "flex";
   document.getElementById("app-nav").style.display = "none";
 }
-function showNavApp() {
+window.showNavApp = function showNavApp() {
   document.getElementById("navbar").style.display = "flex";
   document.getElementById("nav-r").style.display = "none";
   document.getElementById("app-nav").style.display = "flex";
   updateQueriesUI();
 }
-function updateQueriesUI() {
+window.updateQueriesUI = function updateQueriesUI() {
   if (!window._userData) return;
   const plan = PLANS[window._userData.plan || "free"];
   document.getElementById("plan-dot").style.background = plan.color;
@@ -1080,7 +1080,7 @@ function updateQueriesUI() {
   const titleEl = document.getElementById("app-title");
   if (titleEl) titleEl.textContent = plan.searchTitle;
 }
-function showApp(forcePlanId) {
+window.showApp = function showApp(forcePlanId) {
   document.getElementById("page-landing").style.display = "none";
   document.getElementById("page-pricing").style.display = "none";
   document.getElementById("page-app").style.display     = "block";
@@ -1091,7 +1091,7 @@ function showPricing() {
   document.getElementById("page-app").style.display = "none";
   document.getElementById("page-pricing").style.display = "block";
 }
-function setupAppForPlan(forcePlanId) {
+window.setupAppForPlan = function setupAppForPlan(forcePlanId) {
   const planId = forcePlanId || window._userData?.plan || "free";
   const plan   = PLANS[planId] || PLANS.free;
 
@@ -1100,11 +1100,10 @@ function setupAppForPlan(forcePlanId) {
   document.getElementById("app-sub").textContent   = plan.searchSub;
 
   // Show/hide compare vs solo block — ONLY Premium (business) gets compare
-  const compareBlock = document.getElementById("compare-block");
-  const soloBlock    = document.getElementById("solo-block");
-  const upgradeNote  = document.getElementById("upgrade-note");
-  const planId       = window._userData?.plan || "free";
-  const isPremium    = planId === "business";
+  const compareBlock  = document.getElementById("compare-block");
+  const soloBlock     = document.getElementById("solo-block");
+  const upgradeNote   = document.getElementById("upgrade-note");
+  const isPremium     = planId === "business";
   const isEmprendedor = planId === "pro";
 
   // Compare block: SOLO Premium
