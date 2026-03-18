@@ -313,6 +313,22 @@ footer{border-top:1px solid var(--border);padding:28px 24px;max-width:1080px;mar
 .mspinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
 
 /* ─── RESPONSIVE ─── */
+/* ─── SHADCN-STYLE CHART CARDS ─── */
+.ch-card{background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;margin-bottom:14px}
+.ch-card-header{margin-bottom:16px}
+.ch-card-title{font-size:13px;font-weight:600;color:#e5e7eb;margin-bottom:2px}
+.ch-card-desc{font-size:12px;color:#6b7280}
+.ch-container{position:relative;width:100%;height:220px}
+.ch-container canvas{position:absolute!important;inset:0;width:100%!important;height:100%!important}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 20px}
+.kpi-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.kpi-card-label{font-size:11px;color:#6b7280;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.kpi-card-value{font-size:26px;font-weight:800;line-height:1}
+.kpi-card-sub{font-size:11px;color:#6b7280;margin-top:4px}
+.kpi-card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.kpi-spark{position:relative;height:40px;width:100%;margin-top:8px}
+.kpi-spark canvas{position:absolute!important;inset:0;width:100%!important;height:100%!important}
 @media(max-width:860px){
   .plans-grid{grid-template-columns:1fr}
   .compare-table{display:none}
@@ -725,6 +741,40 @@ footer{border-top:1px solid var(--border);padding:28px 24px;max-width:1080px;mar
 <!-- ══════════════════════════════════════
      FIREBASE AUTH (module scope)
 ══════════════════════════════════════ -->
+<script>
+// ── Critical functions exposed BEFORE Firebase module loads ──
+window.COUNTRIES = {CL:"Chile",MX:"México",CO:"Colombia",AR:"Argentina",PE:"Perú",BR:"Brasil",ES:"España",US:"EE.UU."};
+window.PERIOD_LABELS = {"3d":"los últimos 3 días","1m":"el último mes","3m":"los últimos 3 meses","6m":"los últimos 6 meses","12m":"el último año"};
+
+window.showScreen = function(name) {
+  document.getElementById("screen-loading").style.display = "none";
+  document.getElementById("navbar").style.display = "flex";
+  ["landing","app","pricing"].forEach(function(s) {
+    var el = document.getElementById("screen-"+s);
+    if (el) el.classList.remove("active");
+  });
+  if (name === "landing") {
+    document.getElementById("screen-landing").classList.add("active");
+    document.getElementById("nav-auth").style.display = "flex";
+    document.getElementById("nav-app").style.display  = "none";
+    return;
+  }
+  if (name === "app") {
+    document.getElementById("screen-app").classList.add("active");
+    document.getElementById("nav-auth").style.display = "none";
+    document.getElementById("nav-app").style.display  = "flex";
+    if (window.renderPlanUI) window.renderPlanUI();
+    if (window.showView) window.showView("search");
+    return;
+  }
+  if (name === "pricing") {
+    document.getElementById("screen-pricing").classList.add("active");
+    document.getElementById("nav-auth").style.display = "none";
+    document.getElementById("nav-app").style.display  = "flex";
+    return;
+  }
+};
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -749,11 +799,24 @@ async function loadUserData(user) {
 }
 
 // ── SINGLE auth listener — the only place that controls screen transitions ──
+// Safety timeout — if firebase takes >5s, show landing
+const _safetyTimer = setTimeout(() => {
+  if (document.getElementById("screen-loading").style.display !== "none") {
+    window.showScreen("landing");
+  }
+}, 5000);
+
 onAuthStateChanged(auth, async (user) => {
+  clearTimeout(_safetyTimer);
   if (user) {
-    window._user  = user;
-    const data    = await loadUserData(user);
-    window._udata = data;
+    window._user = user;
+    try {
+      const data = await loadUserData(user);
+      window._udata = data;
+    } catch(e) {
+      console.warn("Firestore error:", e);
+      window._udata = {plan:"free", queries:0, email:user.email, name:user.displayName||user.email};
+    }
     window.showScreen("app");
   } else {
     window._user  = null;
@@ -877,32 +940,28 @@ const PERIOD_LABELS = {"3d":"los últimos 3 días","1m":"el último mes","3m":"l
 // ─────────────────────────────────────────
 // SCREEN MANAGER
 // ─────────────────────────────────────────
+// showScreen is defined in the early script block above Firebase module
+// This reassignment ensures renderPlanUI and showView are available
 window.showScreen = function(name) {
-  // Hide loading
   document.getElementById("screen-loading").style.display = "none";
   document.getElementById("navbar").style.display = "flex";
-
-  // Hide all screens
   ["landing","app","pricing"].forEach(s => {
     document.getElementById("screen-"+s).classList.remove("active");
   });
-
   if (name === "landing") {
     document.getElementById("screen-landing").classList.add("active");
     document.getElementById("nav-auth").style.display = "flex";
     document.getElementById("nav-app").style.display  = "none";
     return;
   }
-
   if (name === "app") {
     document.getElementById("screen-app").classList.add("active");
     document.getElementById("nav-auth").style.display = "none";
     document.getElementById("nav-app").style.display  = "flex";
-    renderPlanUI();  // ← THE KEY: render UI AFTER we know the plan
+    renderPlanUI();
     showView("search");
     return;
   }
-
   if (name === "pricing") {
     document.getElementById("screen-pricing").classList.add("active");
     document.getElementById("nav-auth").style.display = "none";
@@ -1184,16 +1243,18 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     const sparkId = "spark-" + Math.random().toString(36).slice(2,7);
     const sparkData = JSON.stringify(trend || [3,5,4,6,5,7,6,8]);
     return `
-    <div style="background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+    <div class="kpi-card">
+      <div class="kpi-card-top">
         <div>
-          <div style="font-size:11px;color:#6b7280;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">${label}</div>
-          <div style="font-size:26px;font-weight:800;color:${color};line-height:1">${value}</div>
-          ${sub ? `<div style="font-size:11px;color:#6b7280;margin-top:5px">${sub}</div>` : ""}
+          <div class="kpi-card-label">${label}</div>
+          <div class="kpi-card-value" style="color:${color}">${value}</div>
+          ${sub ? `<div class="kpi-card-sub">${sub}</div>` : ""}
         </div>
-        <div style="width:36px;height:36px;border-radius:9px;background:${color}15;display:flex;align-items:center;justify-content:center;font-size:18px">${icon}</div>
+        <div class="kpi-card-icon" style="background:${color}15">${icon}</div>
       </div>
-      <canvas id="${sparkId}" height="40" style="width:100%" data-spark="${sparkData.replace(/"/g,"'")}" data-color="${color}"></canvas>
+      <div class="kpi-spark">
+        <canvas id="${sparkId}" data-spark="${sparkData.replace(/"/g,"'")}" data-color="${color}"></canvas>
+      </div>
     </div>`;
   }
 
@@ -1212,7 +1273,7 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     </div>
 
     <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">
+    <div class="kpi-grid">
       ${kpiCard("🎯","Score digital",`${my.score_marca?.toFixed(1)||"—"}/10`,si.c,si.l,[4,5,6,5,7,6,my.score_marca||7,my.score_marca||7])}
       ${kpiCard("📢","Presencia digital",`${my.share_voz}%`,"#7b61ff","Share de voz",[20,22,25,my.share_voz-5,my.share_voz-3,my.share_voz-1,my.share_voz,my.share_voz])}
       ${kpiCard("⚡","Actividad",my.nivel_actividad,ac,`${(my.canales||[]).length} canales activos`,[3,4,3,5,4,6,5,7])}
@@ -1465,7 +1526,7 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     <!-- Brechas radar chart -->
     <div style="background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">Comparativa dimensión por dimensión</div>
-      <canvas id="radar-chart" height="260" style="max-width:100%"></canvas>
+      <div style="position:relative;height:260px;width:100%"><canvas id="radar-chart" style="position:absolute!important;inset:0;width:100%!important;height:100%!important"></canvas></div>
     </div>
 
     <!-- Brechas cards -->
@@ -1593,9 +1654,15 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
           type:"line",
           data:{
             labels: data.map((_,i) => i),
-            datasets:[{data, borderColor:color, backgroundColor:color+"18", borderWidth:2, fill:true, tension:.4, pointRadius:0}]
+            datasets:[{data, borderColor:color, backgroundColor:color+"18", borderWidth:1.5, fill:true, tension:.4, pointRadius:0}]
           },
-          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            animation:{duration:800},
+            plugins:{legend:{display:false},tooltip:{enabled:false}},
+            scales:{x:{display:false},y:{display:false,beginAtZero:false}}
+          }
         });
       } catch(e) {}
     });
@@ -1619,9 +1686,10 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
           ]
         },
         options: {
-          responsive:true, maintainAspectRatio:false,
-          scales:{r:{min:0,max:10,ticks:{display:false,stepSize:2},grid:{color:"rgba(255,255,255,.06)"},pointLabels:{color:"#9ca3af",font:{size:12,weight:"600"}},angleLines:{color:"rgba(255,255,255,.06)"}}},
-          plugins:{legend:{labels:{color:"#9ca3af",font:{size:12}}}}
+          responsive:true,
+          maintainAspectRatio:false,
+          scales:{r:{min:0,max:10,ticks:{display:false,stepSize:2},grid:{color:"rgba(255,255,255,.06)"},pointLabels:{color:"#9ca3af",font:{size:11,weight:"600"}},angleLines:{color:"rgba(255,255,255,.06)"}}},
+          plugins:{legend:{labels:{color:"#9ca3af",font:{size:11},boxWidth:12,boxHeight:12}}}
         }
       });
     }, 200);
