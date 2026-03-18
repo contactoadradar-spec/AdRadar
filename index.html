@@ -1105,10 +1105,15 @@ ${fullPrompt?"Incluye 5+ canales (pct sumando 100), 8+ keywords, 4+ plataformas 
   const res  = await fetch("/api/analyze", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message||"Error "+res.status); }
   const data = await res.json();
-  const text = data.content?.find(b=>b.type==="text")?.text || "";
-  const m    = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("Sin respuesta del servidor. Intenta de nuevo.");
-  return JSON.parse(m[0]);
+  // Collect all text blocks (API may return tool_use + text blocks)
+  const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("") || "";
+  if (!text) {
+    console.error("API response:", JSON.stringify(data).slice(0,500));
+    throw new Error("Sin respuesta de la IA. Verifica que ANTHROPIC_KEY esté configurada en Cloudflare.");
+  }
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error("La IA no devolvió JSON válido. Intenta de nuevo.");
+  try { return JSON.parse(m[0]); } catch(e) { throw new Error("Error procesando respuesta. Intenta de nuevo."); }
 }
 
 async function callComparison(my, comp, countryCode) {
