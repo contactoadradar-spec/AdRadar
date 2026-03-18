@@ -1,4 +1,4 @@
-// Proxy seguro para Anthropic API con web search tool
+// Proxy seguro para Anthropic API — sin web_search para evitar respuestas incompletas
 export async function onRequestPost(context) {
   const { request, env } = context;
   const h = {
@@ -13,26 +13,25 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
 
-    // Agregar web_search tool si no viene en el body
-    if (!body.tools) {
-      body.tools = [{
-        type: "web_search_20250305",
-        name: "web_search"
-      }];
-    }
+    // Remove web_search tool — causes multi-turn responses with no final text block
+    delete body.tools;
 
-    const res  = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Content-Type":        "application/json",
-        "anthropic-version":   "2023-06-01",
-        "anthropic-beta":      "web-search-2025-03-05",
-        "x-api-key":           env.ANTHROPIC_KEY,
+        "Content-Type":      "application/json",
+        "anthropic-version": "2023-06-01",
+        "x-api-key":         env.ANTHROPIC_KEY,
       },
       body: JSON.stringify(body),
     });
 
     const data = await res.json();
+
+    if (!res.ok) {
+      return new Response(JSON.stringify(data), { status: res.status, headers: h });
+    }
+
     return new Response(JSON.stringify(data), { headers: h });
 
   } catch(e) {
