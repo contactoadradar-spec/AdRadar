@@ -768,8 +768,22 @@
           </div>
           <div>
             <label class="field-label">Período de análisis</label>
-            <select class="field-input" id="input-period">
+            <!-- FREE: solo 1 mes -->
+            <select class="field-input" id="period-free" style="display:none">
               <option value="1m" selected>Último mes</option>
+            </select>
+            <!-- PRO: hasta 6 meses -->
+            <select class="field-input" id="period-pro" style="display:none">
+              <option value="1m">Último mes</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m" selected>Últimos 6 meses</option>
+            </select>
+            <!-- BUSINESS: hasta 1 año -->
+            <select class="field-input" id="period-business" style="display:none">
+              <option value="1m">Último mes</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="12m" selected>Último año</option>
             </select>
           </div>
         </div>
@@ -1124,29 +1138,16 @@ window.setupAppForPlan = function setupAppForPlan(forcePlanId) {
   const unSpan = upgradeNote?.querySelector("span");
   if (unSpan) unSpan.textContent = "Actualiza a Premium para comparar tu marca vs competencia";
 
-  // Populate period select based on plan
-  const periodSel  = document.getElementById("input-period");
-  // Use planId from plan object passed to this function (not from _userData to avoid timing issues)
-  const planKey    = planId; // use planId directly — free, pro, or business
-  const allPeriods = [
-    {value:"1m",  label:"Último mes"},
-    {value:"3m",  label:"Últimos 3 meses"},
-    {value:"6m",  label:"Últimos 6 meses"},
-    {value:"12m", label:"Último año"},
-  ];
-  const allowed = planKey === "business" ? ["1m","3m","6m","12m"]
-                : planKey === "pro"      ? ["1m","3m","6m"]
-                :                          ["1m"];
-  const prevVal = periodSel.value;
-  periodSel.innerHTML = "";
-  allPeriods.filter(p => allowed.includes(p.value)).forEach((p, i) => {
-    const opt = document.createElement("option");
-    opt.value = p.value;
-    opt.textContent = p.label;
-    // Keep previous selection if still valid, else select longest
-    if (p.value === prevVal || (!allowed.includes(prevVal) && i === allowed.length - 1)) opt.selected = true;
-    periodSel.appendChild(opt);
+  // Show the correct period select for this plan
+  ["free","pro","business"].forEach(p => {
+    const el = document.getElementById("period-" + p);
+    if (el) el.style.display = (p === planId) ? "block" : "none";
   });
+  // Default to "free" select if planId not found
+  if (!document.getElementById("period-" + planId)) {
+    const freeEl = document.getElementById("period-free");
+    if (freeEl) freeEl.style.display = "block";
+  }
 
   // Examples chips
   const chipsEl = document.getElementById("ex-chips");
@@ -1310,7 +1311,12 @@ window.setExampleSolo = (name) => {
 window.startSearch = async () => {
   const plan    = PLANS[window._userData?.plan || "free"];
   const country = document.getElementById("input-country").value;
-  const periodRaw = document.getElementById("input-period").value;
+  // Read from whichever period select is visible
+  const _pSelId = ["period-free","period-pro","period-business"].find(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display !== "none";
+  }) || "period-free";
+  const periodRaw = document.getElementById(_pSelId)?.value || "1m";
   // Handle custom date range
   let period = periodRaw;
   let periodLabel = PERIODS[periodRaw] || "los últimos 6 meses";
@@ -2017,16 +2023,10 @@ window.switchTab = (name) => {
 // ── Populate period select on DOM ready using cached plan ──
 document.addEventListener("DOMContentLoaded", () => {
   const cachedPlan = localStorage.getItem("ar_plan") || "free";
-  const sel = document.getElementById("input-period");
-  if (!sel) return;
-  const opts = cachedPlan === "business"
-    ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"],["12m","Último año"]]
-    : cachedPlan === "pro"
-    ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"]]
-    : [["1m","Último mes"]];
-  sel.innerHTML = opts.map((o,i) =>
-    '<option value="'+o[0]+'"'+(i===opts.length-1?' selected':'')+'>'+o[1]+'</option>'
-  ).join("");
+  ["free","pro","business"].forEach(p => {
+    const el = document.getElementById("period-" + p);
+    if (el) el.style.display = (p === cachedPlan) ? "block" : "none";
+  });
 });
 
 // ── Nav scroll ──
