@@ -767,10 +767,9 @@
           </div>
           <div>
             <label class="field-label">Período de análisis</label>
-            <div id="period-picker" style="display:flex;flex-direction:column;gap:8px">
-              <!-- Pills populated by setupAppForPlan() -->
-            </div>
-            <input type="hidden" id="input-period" value="1m"/>
+            <select class="field-input" id="input-period">
+              <option value="1m" selected>Último mes</option>
+            </select>
           </div>
         </div>
         <button class="btn-primary" style="width:100%;padding:14px;font-size:15px" id="btn-search" onclick="startSearch()">Analizar →</button>
@@ -1116,8 +1115,26 @@ function setupAppForPlan() {
   const unSpan = upgradeNote?.querySelector("span");
   if (unSpan) unSpan.textContent = "Actualiza a Premium para comparar tu marca vs competencia";
 
-  // Period picker — visual pills with optional custom range
-  buildPeriodPicker(plan);
+  // Populate period select based on plan
+  const periodSel  = document.getElementById("input-period");
+  const planId3    = window._userData?.plan || "free";
+  const allPeriods = [
+    {value:"1m",  label:"Último mes"},
+    {value:"3m",  label:"Últimos 3 meses"},
+    {value:"6m",  label:"Últimos 6 meses"},
+    {value:"12m", label:"Último año"},
+  ];
+  const allowed = planId3 === "business" ? ["1m","3m","6m","12m"]
+                : planId3 === "pro"      ? ["1m","3m","6m"]
+                :                          ["1m"];
+  periodSel.innerHTML = "";
+  allPeriods.filter(p => allowed.includes(p.value)).forEach((p, i) => {
+    const opt = document.createElement("option");
+    opt.value = p.value;
+    opt.textContent = p.label;
+    if (i === allowed.length - 1) opt.selected = true; // select longest available
+    periodSel.appendChild(opt);
+  });
 
   // Examples chips
   const chipsEl = document.getElementById("ex-chips");
