@@ -883,6 +883,8 @@
       document.getElementById("page-pricing").style.display  = "none";
       showNavApp();
       showApp();
+      // userData ya cargó — aplicar reglas del plan correctamente
+      setupAppForPlan();
 
     } else {
       window._user         = null;
@@ -1082,8 +1084,11 @@ function updateQueriesUI() {
 function showApp() {
   document.getElementById("page-landing").style.display = "none";
   document.getElementById("page-pricing").style.display = "none";
-  document.getElementById("page-app").style.display = "block";
-  setupAppForPlan();
+  document.getElementById("page-app").style.display     = "block";
+  // Only setup if userData is ready, otherwise wait
+  if (window._userData) {
+    setupAppForPlan();
+  }
 }
 function showPricing() {
   document.getElementById("page-landing").style.display = "none";
