@@ -1293,7 +1293,21 @@ window.startSearch = async () => {
 
   const q = window._userData?.queries || 0;
   if (plan.queries !== 9999 && q >= plan.queries) {
-    showPricing(); return;
+    // Quitar mensaje anterior si existe
+    const old = document.getElementById("limit-msg");
+    if (old) old.remove();
+    // Crear mensaje amigable
+    const msg = document.createElement("div");
+    msg.id = "limit-msg";
+    msg.style.cssText = "margin-top:16px;padding:24px;background:rgba(200,169,110,0.07);border:1.5px solid rgba(200,169,110,0.25);border-radius:12px;text-align:center";
+    msg.innerHTML = '<div style="font-size:28px;margin-bottom:10px">🎯</div>'
+      + '<div style="font-size:17px;font-weight:800;margin-bottom:8px;color:var(--text)">Se te acabaron las consultas gratis</div>'
+      + '<div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto">Ya usaste tus ' + plan.queries + ' consultas gratuitas de este mes. Accede a uno de nuestros planes y sigue descubriendo lo que hace tu competencia.</div>'
+      + '<button class="btn-primary" style="font-size:14px;padding:12px 28px" onclick="showPricing()">Ver nuestros planes →</button>'
+      + '<div style="font-size:11px;color:var(--muted);margin-top:10px">Desde $15/mes · Cancela cuando quieras · Sin contratos</div>';
+    document.getElementById("btn-search").after(msg);
+    msg.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
   }
 
   document.getElementById("app-search").style.display  = "none";
