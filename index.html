@@ -337,19 +337,6 @@
       document.getElementById("page-pricing").style.display = "none";
       document.getElementById("page-landing").style.display = "none";
 
-      // Populate period select immediately using cached plan
-      const cachedPlan = localStorage.getItem("ar_plan") || "free";
-      const sel = document.getElementById("input-period");
-      if (sel) {
-        const opts = cachedPlan === "business"
-          ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"],["12m","Último año"]]
-          : cachedPlan === "pro"
-          ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"]]
-          : [["1m","Último mes"]];
-        sel.innerHTML = opts.map((o,i) =>
-          `<option value="${o[0]}"${i===opts.length-1?" selected":""}>${o[1]}</option>`
-        ).join("");
-      }
     } else {
       // Sin sesión — mostrar landing
       document.getElementById("page-loading").style.display = "none";
@@ -2026,6 +2013,21 @@ window.switchTab = (name) => {
   document.querySelectorAll(".rtab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   document.querySelectorAll(".rpanel").forEach(p => p.classList.toggle("on", p.id === "rp-" + name));
 };
+
+// ── Populate period select on DOM ready using cached plan ──
+document.addEventListener("DOMContentLoaded", () => {
+  const cachedPlan = localStorage.getItem("ar_plan") || "free";
+  const sel = document.getElementById("input-period");
+  if (!sel) return;
+  const opts = cachedPlan === "business"
+    ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"],["12m","Último año"]]
+    : cachedPlan === "pro"
+    ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"]]
+    : [["1m","Último mes"]];
+  sel.innerHTML = opts.map((o,i) =>
+    '<option value="'+o[0]+'"'+(i===opts.length-1?' selected':'')+'>'+o[1]+'</option>'
+  ).join("");
+});
 
 // ── Nav scroll ──
 window.addEventListener("scroll", () => {
