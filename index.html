@@ -336,6 +336,20 @@
       document.getElementById("page-app").style.display     = "block";
       document.getElementById("page-pricing").style.display = "none";
       document.getElementById("page-landing").style.display = "none";
+
+      // Populate period select immediately using cached plan
+      const cachedPlan = localStorage.getItem("ar_plan") || "free";
+      const sel = document.getElementById("input-period");
+      if (sel) {
+        const opts = cachedPlan === "business"
+          ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"],["12m","Último año"]]
+          : cachedPlan === "pro"
+          ? [["1m","Último mes"],["3m","Últimos 3 meses"],["6m","Últimos 6 meses"]]
+          : [["1m","Último mes"]];
+        sel.innerHTML = opts.map((o,i) =>
+          `<option value="${o[0]}"${i===opts.length-1?" selected":""}>${o[1]}</option>`
+        ).join("");
+      }
     } else {
       // Sin sesión — mostrar landing
       document.getElementById("page-loading").style.display = "none";
@@ -873,7 +887,10 @@
     if (user) {
       window._user         = user;
       window._userLoggedIn = true;
-      try { localStorage.setItem("ar_session", "1"); } catch(e) {}
+      try {
+        localStorage.setItem("ar_session", "1");
+        localStorage.setItem("ar_plan", window._userData?.plan || "free");
+      } catch(e) {}
 
       window._userData = await loadUser(user);
 
@@ -889,7 +906,10 @@
       window._user         = null;
       window._userData     = null;
       window._userLoggedIn = false;
-      try { localStorage.removeItem("ar_session"); } catch(e) {}
+      try {
+        localStorage.removeItem("ar_session");
+        localStorage.removeItem("ar_plan");
+      } catch(e) {}
 
       document.getElementById("page-loading").style.display = "none";
       document.getElementById("navbar").style.display        = "flex";
@@ -967,6 +987,7 @@
     if (!window._user) return;
     window._userData.plan = planId;
     await updateDoc(doc(db, "users", window._user.uid), { plan: planId });
+    try { localStorage.setItem("ar_plan", planId); } catch(e) {}
   };
 
   // ── Guardar consulta ──
