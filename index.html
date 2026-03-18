@@ -1182,7 +1182,7 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
   // ── KPI CARD ──
   function kpiCard(icon, label, value, color, sub, trend) {
     const sparkId = "spark-" + Math.random().toString(36).slice(2,7);
-    const sparkData = trend || [3,5,4,6,5,7,6,8];
+    const sparkData = JSON.stringify(trend || [3,5,4,6,5,7,6,8]);
     return `
     <div style="background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
@@ -1193,19 +1193,8 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
         </div>
         <div style="width:36px;height:36px;border-radius:9px;background:${color}15;display:flex;align-items:center;justify-content:center;font-size:18px">${icon}</div>
       </div>
-      <canvas id="${sparkId}" height="40" style="width:100%"></canvas>
-    </div>
-    <script>
-    (function(){
-      const ctx = document.getElementById("${sparkId}");
-      if (!ctx || !window.Chart) return;
-      new Chart(ctx, {
-        type:"line",
-        data:{labels:${JSON.stringify(sparkData.map((_,i)=>i))},datasets:[{data:${JSON.stringify(sparkData)},borderColor:"${color}",backgroundColor:"${color}18",borderWidth:2,fill:true,tension:.4,pointRadius:0}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
-      });
-    })();
-    </script>`;
+      <canvas id="${sparkId}" height="40" style="width:100%" data-spark="${sparkData.replace(/"/g,"'")}" data-color="${color}"></canvas>
+    </div>`;
   }
 
   // ── RESUMEN PANEL ──
@@ -1591,6 +1580,26 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     <!-- Panels -->
     ${tabs.map((t,i) => `<div class="tab-panel${i===0?" on":""}" id="tp-${t[0]}">${panels[t[0]]||""}</div>`).join("")}
   `;
+
+  // Draw sparklines from data attributes
+  setTimeout(() => {
+    document.querySelectorAll("canvas[data-spark]").forEach(canvas => {
+      if (!window.Chart) return;
+      try {
+        const raw = canvas.getAttribute("data-spark").replace(/'/g,'"');
+        const data = JSON.parse(raw);
+        const color = canvas.getAttribute("data-color") || "#4f7fff";
+        new Chart(canvas, {
+          type:"line",
+          data:{
+            labels: data.map((_,i) => i),
+            datasets:[{data, borderColor:color, backgroundColor:color+"18", borderWidth:2, fill:true, tension:.4, pointRadius:0}]
+          },
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+        });
+      } catch(e) {}
+    });
+  }, 100);
 
   // Draw radar chart if comparison exists
   if (cmp?.brechas?.length) {
