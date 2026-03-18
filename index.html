@@ -1117,22 +1117,25 @@ function setupAppForPlan() {
 
   // Populate period select based on plan
   const periodSel  = document.getElementById("input-period");
-  const planId3    = window._userData?.plan || "free";
+  // Use planId from plan object passed to this function (not from _userData to avoid timing issues)
+  const planKey    = plan.name === "PREMIUM" ? "business" : plan.name === "EMPRENDEDOR" ? "pro" : "free";
   const allPeriods = [
     {value:"1m",  label:"Último mes"},
     {value:"3m",  label:"Últimos 3 meses"},
     {value:"6m",  label:"Últimos 6 meses"},
     {value:"12m", label:"Último año"},
   ];
-  const allowed = planId3 === "business" ? ["1m","3m","6m","12m"]
-                : planId3 === "pro"      ? ["1m","3m","6m"]
+  const allowed = planKey === "business" ? ["1m","3m","6m","12m"]
+                : planKey === "pro"      ? ["1m","3m","6m"]
                 :                          ["1m"];
+  const prevVal = periodSel.value;
   periodSel.innerHTML = "";
   allPeriods.filter(p => allowed.includes(p.value)).forEach((p, i) => {
     const opt = document.createElement("option");
     opt.value = p.value;
     opt.textContent = p.label;
-    if (i === allowed.length - 1) opt.selected = true; // select longest available
+    // Keep previous selection if still valid, else select longest
+    if (p.value === prevVal || (!allowed.includes(prevVal) && i === allowed.length - 1)) opt.selected = true;
     periodSel.appendChild(opt);
   });
 
@@ -1996,84 +1999,6 @@ window.toggleMonitor = async (checkbox, brand) => {
   }
 };
 
-// ── Period Picker ──
-function buildPeriodPicker(plan) {
-  const picker  = document.getElementById("period-picker");
-  const hidden  = document.getElementById("input-period");
-  if (!picker) return;
-
-  const planId     = window._userData?.plan || "free";
-  const maxMonths  = planId === "business" ? 12 : planId === "pro" ? 6 : 1;
-
-  const presets = [
-    { value:"1m",  label:"1 mes",    months:1  },
-    { value:"3m",  label:"3 meses",  months:3  },
-    { value:"6m",  label:"6 meses",  months:6  },
-    { value:"12m", label:"1 año",    months:12 },
-    { value:"custom", label:"Personalizado", months:null },
-  ];
-
-  // Build current date info
-  const now    = new Date();
-  const maxDate = now.toISOString().split("T")[0];
-  const minDate = new Date(now.getFullYear(), now.getMonth() - maxMonths, 1).toISOString().split("T")[0];
-
-  // Set default value
-  const defaultVal = planId === "business" ? "6m" : planId === "pro" ? "6m" : "1m";
-  hidden.value = defaultVal;
-
-  picker.innerHTML = `
-    <div class="period-pills" id="period-pills"></div>
-    <div class="custom-range" id="custom-range">
-      <input type="date" class="date-input" id="date-from" min="${minDate}" max="${maxDate}" placeholder="Desde"/>
-      <span style="font-size:13px;color:var(--muted)">→</span>
-      <input type="date" class="date-input" id="date-to" min="${minDate}" max="${maxDate}" value="${maxDate}" placeholder="Hasta"/>
-      <span style="font-size:11px;color:var(--muted);margin-left:4px">Máx. ${maxMonths} ${maxMonths===1?"mes":"meses"}</span>
-    </div>
-  `;
-
-  const pillsEl = document.getElementById("period-pills");
-
-  presets.forEach(p => {
-    const locked   = p.months !== null && p.months > maxMonths;
-    const btn      = document.createElement("button");
-    btn.className  = "period-pill" + (p.value === defaultVal ? " active" : "") + (locked ? " locked" : "");
-    btn.textContent = locked ? p.label + " 🔒" : p.label;
-    btn.title       = locked ? "Disponible en plan " + (p.months <= 6 ? "Emprendedor" : "Premium") : "";
-    btn.onclick     = () => {
-      if (locked) { showPricing(); return; }
-      // Deactivate all
-      pillsEl.querySelectorAll(".period-pill").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const customRange = document.getElementById("custom-range");
-      if (p.value === "custom") {
-        hidden.value = "custom";
-        customRange.classList.add("open");
-        // Set default from date = 1 month ago
-        const fromDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString().split("T")[0];
-        document.getElementById("date-from").value = fromDate;
-        // Sync hidden value on change
-        const sync = () => {
-          const from = document.getElementById("date-from").value;
-          const to   = document.getElementById("date-to").value;
-          if (from && to) hidden.value = from + "|" + to;
-        };
-        document.getElementById("date-from").onchange = sync;
-        document.getElementById("date-to").onchange   = sync;
-        sync();
-      } else {
-        hidden.value = p.value;
-        customRange.classList.remove("open");
-      }
-    };
-    // Don't show 1 year preset on free plan
-    if (planId === "free" && p.months && p.months > 1) {
-      // show it but locked
-    }
-    if (planId !== "business" && p.value === "12m") return; // hide 1 year for non-premium unless locked preview
-    pillsEl.appendChild(btn);
-  });
-}
 
 window.switchTab = (name) => {
   document.querySelectorAll(".rtab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
