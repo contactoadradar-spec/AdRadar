@@ -286,6 +286,16 @@
     .toggle input:checked + .toggle-slider::before{transform:translateX(18px)}
     /* Offer pill */
     .offer-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:rgba(245,101,101,0.1);border:1px solid rgba(245,101,101,0.2);border-radius:20px;font-size:11px;font-weight:700;color:var(--red)}
+    /* Period picker */
+    .period-pills{display:flex;gap:6px;flex-wrap:wrap}
+    .period-pill{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);color:var(--muted);background:transparent;font-family:inherit;transition:all .2s}
+    .period-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(79,127,255,0.08)}
+    .period-pill:hover:not(.active){border-color:rgba(255,255,255,0.2);color:var(--text)}
+    .period-pill.locked{opacity:.4;cursor:not-allowed}
+    .custom-range{display:none;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+    .custom-range.open{display:flex}
+    .date-input{padding:8px 10px;background:rgba(255,255,255,0.05);border:1.5px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:border-color .2s;width:130px}
+    .date-input:focus{border-color:rgba(79,127,255,0.5)}
     /* Responsive */
     @media(max-width:860px){
       .pgrid,.tgrid,.pgrid2,.steps-row,.price-grid{grid-template-columns:1fr}
@@ -756,10 +766,11 @@
             </select>
           </div>
           <div>
-            <label class="field-label">Período</label>
-            <select class="field-input" id="input-period">
-              <option value="1m" selected>1 mes</option>
-            </select>
+            <label class="field-label">Período de análisis</label>
+            <div id="period-picker" style="display:flex;flex-direction:column;gap:8px">
+              <!-- Pills populated by setupAppForPlan() -->
+            </div>
+            <input type="hidden" id="input-period" value="1m"/>
           </div>
         </div>
         <button class="btn-primary" style="width:100%;padding:14px;font-size:15px" id="btn-search" onclick="startSearch()">Analizar →</button>
@@ -1105,17 +1116,8 @@ function setupAppForPlan() {
   const unSpan = upgradeNote?.querySelector("span");
   if (unSpan) unSpan.textContent = "Actualiza a Premium para comparar tu marca vs competencia";
 
-  // Period selector — only show allowed periods
-  const periodSel = document.getElementById("input-period");
-  periodSel.innerHTML = "";
-  plan.periods.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p;
-    opt.textContent = PERIODS_LABELS[p];
-    if (p === "6m" && plan.periods.includes("6m")) opt.selected = true;
-    else if (plan.periods.length > 0 && !periodSel.value) opt.selected = true;
-    periodSel.appendChild(opt);
-  });
+  // Period picker — visual pills with optional custom range
+  buildPeriodPicker(plan);
 
   // Examples chips
   const chipsEl = document.getElementById("ex-chips");
@@ -1279,7 +1281,27 @@ window.setExampleSolo = (name) => {
 window.startSearch = async () => {
   const plan    = PLANS[window._userData?.plan || "free"];
   const country = document.getElementById("input-country").value;
-  const period  = document.getElementById("input-period").value;
+  const periodRaw = document.getElementById("input-period").value;
+  // Handle custom date range
+  let period = periodRaw;
+  let periodLabel = PERIODS[periodRaw] || "los últimos 6 meses";
+  if (periodRaw && periodRaw.includes("|")) {
+    const [from, to] = periodRaw.split("|");
+    const fromDate = new Date(from);
+    const toDate   = new Date(to);
+    const diffMs   = toDate - fromDate;
+    const diffDays = Math.round(diffMs / (1000*60*60*24));
+    period = periodRaw;
+    if (diffDays <= 7)       periodLabel = "la última semana";
+    else if (diffDays <= 14) periodLabel = "las últimas 2 semanas";
+    else if (diffDays <= 31) periodLabel = "el último mes";
+    else if (diffDays <= 93) periodLabel = "los últimos 3 meses";
+    else if (diffDays <= 186) periodLabel = "los últimos 6 meses";
+    else                      periodLabel = "el último año";
+    periodLabel += ` (${from} al ${to})`;
+  } else {
+    periodLabel = PERIODS[period] || "los últimos 6 meses";
+  }
   const isCompare = plan.compare;
 
   // Read from whichever input is currently visible
@@ -1319,19 +1341,19 @@ window.startSearch = async () => {
   setStep(0, `Analizando ${myBrand}...`);
 
   try {
-    const myData = await callAI(myBrand, country, period);
+    const myData = await callAI(myBrand, country, period, periodLabel);
     let compData = null, cmpData = null;
 
     if (isCompare && compBrand) {
       setStep(1);
-      compData = await callAI(compBrand, country, period);
+      compData = await callAI(compBrand, country, period, periodLabel);
       setStep(2);
       cmpData  = await callComparison(myData, compData, country);
     }
     setStep(3);
 
     await window.saveQuery();
-    renderResults(myData, compData, cmpData, plan, country, period);
+    renderResults(myData, compData, cmpData, plan, country, period, periodLabel);
 
     document.getElementById("app-loading").style.display  = "none";
     document.getElementById("app-results").style.display  = "block";
@@ -1395,8 +1417,8 @@ function buildLoadingSteps(plan) {
 }
 
 // ── AI calls ──
-async function callAI(name, countryCode, period) {
-  const periodLabel = PERIODS[period] || "los últimos 6 meses";
+async function callAI(name, countryCode, period, periodLabel) {
+  if (!periodLabel) periodLabel = PERIODS[period] || "los últimos 6 meses";
   const countryName = COUNTRIES[countryCode] || countryCode;
   const body = {
     model:"claude-sonnet-4-20250514",
@@ -1433,7 +1455,8 @@ async function callComparison(my, comp, country) {
 }
 
 // ── Render results ──
-function renderResults(my, comp, cmp, plan, country, period) {
+function renderResults(my, comp, cmp, plan, country, period, periodLabel) {
+  if (!periodLabel) periodLabel = PERIODS[period] || "los últimos 6 meses";
   const myN = my.nombre;
   const cpN = comp?.nombre || "";
   const isPro = plan.full;
@@ -1808,7 +1831,7 @@ function renderResults(my, comp, cmp, plan, country, period) {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
         <div>
           <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px">${myN}${cpN?` <span style='color:var(--muted);font-weight:400;font-size:15px'>vs</span> ${cpN}`:""}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Análisis en ${COUNTRIES[country]} · Últimos ${PERIODS_LABELS[period]}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Análisis en ${COUNTRIES[country]} · ${periodLabel}</div>
         </div>
         <button onclick="document.getElementById('app-results').style.display='none';document.getElementById('app-search').style.display='block'" style="font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:inherit">← Nueva búsqueda</button>
       </div>
@@ -1955,6 +1978,85 @@ window.toggleMonitor = async (checkbox, brand) => {
     } catch(e) { console.error(e); }
   }
 };
+
+// ── Period Picker ──
+function buildPeriodPicker(plan) {
+  const picker  = document.getElementById("period-picker");
+  const hidden  = document.getElementById("input-period");
+  if (!picker) return;
+
+  const planId     = window._userData?.plan || "free";
+  const maxMonths  = planId === "business" ? 12 : planId === "pro" ? 6 : 1;
+
+  const presets = [
+    { value:"1m",  label:"1 mes",    months:1  },
+    { value:"3m",  label:"3 meses",  months:3  },
+    { value:"6m",  label:"6 meses",  months:6  },
+    { value:"12m", label:"1 año",    months:12 },
+    { value:"custom", label:"Personalizado", months:null },
+  ];
+
+  // Build current date info
+  const now    = new Date();
+  const maxDate = now.toISOString().split("T")[0];
+  const minDate = new Date(now.getFullYear(), now.getMonth() - maxMonths, 1).toISOString().split("T")[0];
+
+  // Set default value
+  const defaultVal = planId === "business" ? "6m" : planId === "pro" ? "6m" : "1m";
+  hidden.value = defaultVal;
+
+  picker.innerHTML = `
+    <div class="period-pills" id="period-pills"></div>
+    <div class="custom-range" id="custom-range">
+      <input type="date" class="date-input" id="date-from" min="${minDate}" max="${maxDate}" placeholder="Desde"/>
+      <span style="font-size:13px;color:var(--muted)">→</span>
+      <input type="date" class="date-input" id="date-to" min="${minDate}" max="${maxDate}" value="${maxDate}" placeholder="Hasta"/>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">Máx. ${maxMonths} ${maxMonths===1?"mes":"meses"}</span>
+    </div>
+  `;
+
+  const pillsEl = document.getElementById("period-pills");
+
+  presets.forEach(p => {
+    const locked   = p.months !== null && p.months > maxMonths;
+    const btn      = document.createElement("button");
+    btn.className  = "period-pill" + (p.value === defaultVal ? " active" : "") + (locked ? " locked" : "");
+    btn.textContent = locked ? p.label + " 🔒" : p.label;
+    btn.title       = locked ? "Disponible en plan " + (p.months <= 6 ? "Emprendedor" : "Premium") : "";
+    btn.onclick     = () => {
+      if (locked) { showPricing(); return; }
+      // Deactivate all
+      pillsEl.querySelectorAll(".period-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const customRange = document.getElementById("custom-range");
+      if (p.value === "custom") {
+        hidden.value = "custom";
+        customRange.classList.add("open");
+        // Set default from date = 1 month ago
+        const fromDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString().split("T")[0];
+        document.getElementById("date-from").value = fromDate;
+        // Sync hidden value on change
+        const sync = () => {
+          const from = document.getElementById("date-from").value;
+          const to   = document.getElementById("date-to").value;
+          if (from && to) hidden.value = from + "|" + to;
+        };
+        document.getElementById("date-from").onchange = sync;
+        document.getElementById("date-to").onchange   = sync;
+        sync();
+      } else {
+        hidden.value = p.value;
+        customRange.classList.remove("open");
+      }
+    };
+    // Don't show 1 year preset on free plan
+    if (planId === "free" && p.months && p.months > 1) {
+      // show it but locked
+    }
+    if (planId !== "business" && p.value === "12m") return; // hide 1 year for non-premium unless locked preview
+    pillsEl.appendChild(btn);
+  });
+}
 
 window.switchTab = (name) => {
   document.querySelectorAll(".rtab").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
