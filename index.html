@@ -1845,55 +1845,98 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
   // Store current search params for re-analysis
   window._lastSearch = {myBrand: myN, compBrand: cpN, country, plan};
 
-  document.getElementById("view-results").innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(79,127,255,.08),rgba(200,169,110,.04));border:1px solid rgba(79,127,255,.15);border-radius:14px;padding:18px 20px;margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-        <div>
-          <div style="font-size:20px;font-weight:800;letter-spacing:-.5px">${myN}${cpN?` <span style="color:#4b5563;font-weight:400;font-size:14px">vs</span> ${cpN}`:""}</div>
-          <div style="font-size:11px;color:#6b7280;margin-top:3px">${COUNTRIES[country]||country}</div>
-        </div>
-        <button onclick="showView('search')" style="font-size:12px;color:#6b7280;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">← Nueva búsqueda</button>
-      </div>
+  const kpiExplain = {
+    score:`<b>¿Qué es?</b> Un puntaje del 1 al 10 que resume qué tan fuerte es la presencia digital de esta marca. Considera canales, actividad, sentimiento y posicionamiento.`,
+    presencia:`<b>¿Qué es?</b> El porcentaje estimado de la conversación digital que ocupa esta marca dentro de su industria. Un 30% significa que 3 de cada 10 menciones del sector son de ellos.`,
+    actividad:`<b>¿Qué es?</b> Qué tan frecuente y constante es su presencia en redes y publicidad. <b>Alto</b> = publican y pagan todos los días. <b>Medio</b> = regular. <b>Bajo</b> = esporádico.`,
+    tendencia:`<b>¿Qué es?</b> Si su presencia digital está creciendo, bajando o estable en el período analizado. <b>Creciendo</b> = están invirtiendo más o ganando más alcance últimamente.`
+  };
 
-      <!-- Period picker inside results -->
-      <div style="margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Período analizado</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center" id="results-period-pills">
-          ${buildResultPeriodPills(window._udata?.plan||"free", "${period}")}
-        </div>
-        <div id="results-custom-range" style="display:none;margin-top:8px;display:none;gap:7px;align-items:center;flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;gap:2px">
-            <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Desde</span>
-            <input type="date" id="results-date-from" style="padding:6px 9px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
-          </div>
-          <span style="color:#6b7280;margin-top:12px;font-size:13px">→</span>
-          <div style="display:flex;flex-direction:column;gap:2px">
-            <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Hasta</span>
-            <input type="date" id="results-date-to" style="padding:6px 9px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
-          </div>
-          <button onclick="reAnalyzeWithCustomDate()" style="margin-top:12px;padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Actualizar →</button>
-        </div>
+  document.getElementById("view-results").innerHTML = `
+
+    <!-- ① MARCA + PERÍODO (top bar) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;color:#6b7280;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">${COUNTRIES[country]||country} · ${periodLabel}</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.2">${myN}${cpN?` <span style="color:#4b5563;font-weight:400;font-size:16px">vs</span> ${cpN}`:""}</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        ${[
-          {v:my.score_marca?.toFixed(1)+"/10",l:"Score",c:si.c},
-          {v:my.share_voz+"%",l:"Presencia",c:"#7b61ff"},
-          {v:my.nivel_actividad,l:"Actividad",c:ac},
-          {v:my.tendencia,l:"Tendencia",c:tc},
-        ].map(k=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:10px;text-align:center">
-          <div style="font-size:16px;font-weight:800;color:${k.c}">${k.v}</div>
-          <div style="font-size:9px;color:#6b7280;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">${k.l}</div>
-        </div>`).join("")}
+      <button onclick="showView('search')" style="font-size:12px;color:#6b7280;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:8px 14px;cursor:pointer;font-family:inherit;transition:all .2s" onmouseover="this.style.color='#e5e7eb'" onmouseout="this.style.color='#6b7280'">← Nueva búsqueda</button>
+    </div>
+
+    <!-- ② PERIOD PICKER -->
+    <div style="background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">⏱ Cambiar período analizado</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center" id="results-period-pills">
+        ${buildResultPeriodPills(window._udata?.plan||"free", "${period}")}
+      </div>
+      <div id="results-custom-range" style="display:none;margin-top:12px;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Desde</span>
+          <input type="date" id="results-date-from" style="padding:7px 10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
+        </div>
+        <span style="color:#6b7280;padding-bottom:8px;font-size:14px">→</span>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Hasta</span>
+          <input type="date" id="results-date-to" style="padding:7px 10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
+        </div>
+        <button onclick="reAnalyzeWithCustomDate()" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Actualizar →</button>
       </div>
     </div>
-    <div class="tabs">${tabBtns}</div>
-    ${tabs.map((t,i)=>`<div class="tab-panel${i===0?" on":""}" id="tp-${t[0]}">${panels[t[0]]||""}</div>`).join("")}
+
+    <!-- ③ MAIN TABS — prominentes -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:20px">
+      ${tabs.map((t,i)=>`
+        <button data-tab="${t[0]}" onclick="switchResultTab('${t[0]}')"
+          style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border-radius:12px;border:1.5px solid ${i===0?"var(--accent)":"rgba(255,255,255,.07)"};background:${i===0?"rgba(79,127,255,.08)":"#141720"};cursor:pointer;font-family:inherit;transition:all .2s;position:relative" id="tab-card-${t[0]}">
+          <span style="font-size:20px">${t[0]==="resumen"?"📊":t[0]==="canales"?"📣":t[0]==="keywords"?"🔑":t[0]==="campanas"?"📢":t[0]==="vsyo"?"⚔️":"🎯"}</span>
+          <span style="font-size:12px;font-weight:700;color:${i===0?"var(--accent)":"#9ca3af"}" id="tab-label-${t[0]}">${t[1].replace(/^[^\s]+ /,"")}</span>
+        </button>`).join("")}
+    </div>
+
+    <!-- ④ KPI CARDS CON EXPLICACIÓN -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:20px">
+      ${[
+        {key:"score", icon:"🎯", label:"Score digital", val:my.score_marca?.toFixed(1)+"/10", color:si.c, sub:si.l, spark:[4,5,5,6,6,7,my.score_marca||7]},
+        {key:"presencia", icon:"📢", label:"Presencia digital", val:my.share_voz+"%", color:"#7b61ff", sub:"Share de voz", spark:[18,20,22,my.share_voz-4,my.share_voz-2,my.share_voz,my.share_voz]},
+        {key:"actividad", icon:my.nivel_actividad==="alto"?"🔥":my.nivel_actividad==="medio"?"⚡":"💤", label:"Nivel de actividad", val:my.nivel_actividad, color:ac, sub:(my.canales||[]).length+" canales", spark:[3,4,4,5,5,6,6]},
+        {key:"tendencia", icon:my.tendencia==="creciendo"?"📈":my.tendencia==="decreciendo"?"📉":"📊", label:"Tendencia", val:my.tendencia, color:tc, sub:"Últimos "+periodLabel.split(" ").slice(-2).join(" "), spark:[4,4,5,5,6,6,7]},
+      ].map(k=>`
+        <div style="background:#141720;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;border-top:2px solid ${k.color};position:relative">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px">${k.label}</div>
+              <div style="font-size:22px;font-weight:800;color:${k.color};line-height:1.1">${k.val}</div>
+              <div style="font-size:11px;color:#6b7280;margin-top:3px">${k.sub}</div>
+            </div>
+            <div style="font-size:22px">${k.icon}</div>
+          </div>
+          ${svgSparkline(k.spark,k.color,120,28)}
+          <!-- Tooltip explicación -->
+          <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:7px;border-left:2px solid ${k.color}30;font-size:11px;color:#6b7280;line-height:1.5">${kpiExplain[k.key]}</div>
+        </div>`).join("")}
+    </div>
+
+    <!-- ⑤ TAB CONTENT -->
+    <div id="results-tab-content">
+      ${tabs.map((t,i)=>`<div class="tab-panel${i===0?" on":""}" id="tp-${t[0]}">${panels[t[0]]||""}</div>`).join("")}
+    </div>
   `;
 }
 
 
 window.switchResultTab = (name) => {
+  // Update card tabs
+  document.querySelectorAll("[id^='tab-card-']").forEach(card => {
+    const tabName = card.id.replace("tab-card-","");
+    const isActive = tabName === name;
+    card.style.border = isActive ? "1.5px solid var(--accent)" : "1.5px solid rgba(255,255,255,.07)";
+    card.style.background = isActive ? "rgba(79,127,255,.08)" : "#141720";
+    const label = document.getElementById("tab-label-"+tabName);
+    if (label) label.style.color = isActive ? "var(--accent)" : "#9ca3af";
+  });
+  // Update legacy tab-btn if any
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
+  // Show/hide panels
   document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("on",p.id==="tp-"+name));
 };
 
