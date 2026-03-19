@@ -329,6 +329,11 @@ footer{border-top:1px solid var(--border);padding:28px 24px;max-width:1080px;mar
 .kpi-card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .kpi-spark{position:relative;height:40px;width:100%;margin-top:8px}
 .kpi-spark canvas{position:absolute!important;inset:0;width:100%!important;height:100%!important}
+.period-pill{padding:6px 13px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,.08);color:#6b7280;background:transparent;font-family:inherit;transition:all .15s;white-space:nowrap}
+.period-pill.on{border-color:var(--accent);color:var(--accent);background:rgba(79,127,255,.1)}
+.period-pill.locked{opacity:.4;cursor:not-allowed}
+.period-pill:hover:not(.locked):not(.on){border-color:rgba(255,255,255,.2);color:#e5e7eb}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5)}
 @media(max-width:860px){
   .plans-grid{grid-template-columns:1fr}
   .compare-table{display:none}
@@ -619,10 +624,23 @@ footer{border-top:1px solid var(--border);padding:28px 24px;max-width:1080px;mar
             </select>
           </div>
           <div>
-            <label class="field-label">Período</label>
-            <select class="field-input" id="in-period">
-              <!-- Populated by renderPlanUI() -->
-            </select>
+            <label class="field-label">Período de análisis</label>
+            <div id="period-picker-wrap">
+              <div id="period-pills-row" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+              <div id="custom-range-row" style="display:none;margin-top:8px;gap:7px;align-items:center;flex-wrap:wrap">
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Desde</span>
+                  <input type="date" id="date-from" style="padding:7px 10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
+                </div>
+                <span style="color:#6b7280;margin-top:14px">→</span>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Hasta</span>
+                  <input type="date" id="date-to" style="padding:7px 10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:7px;color:#e5e7eb;font-size:12px;font-family:inherit;outline:none"/>
+                </div>
+                <span id="custom-limit-note" style="font-size:10px;color:#6b7280;margin-top:14px"></span>
+              </div>
+            </div>
+            <input type="hidden" id="in-period" value="1m"/>
           </div>
         </div>
 
@@ -969,6 +987,86 @@ window.showScreen = function(name) {
   }
 };
 
+// ─── Period Picker ─────────────────────────────────────────────
+function buildPeriodPicker(planId) {
+  const pillsRow   = document.getElementById("period-pills-row");
+  const customRow  = document.getElementById("custom-range-row");
+  const hiddenInp  = document.getElementById("in-period");
+  if (!pillsRow) return;
+
+  const now      = new Date();
+  const maxDate  = now.toISOString().split("T")[0];
+  const planCfg  = PLAN_CONFIG[planId] || PLAN_CONFIG.free;
+
+  // Max months allowed per plan
+  const maxMonths = planId === "pro" ? 12 : planId === "growth" ? 6 : 1;
+
+  const presets = [
+    {v:"3d",  l:"3 días",   months:0,   free:true},
+    {v:"1m",  l:"1 mes",    months:1,   free:true},
+    {v:"3m",  l:"3 meses",  months:3,   free:false},
+    {v:"6m",  l:"6 meses",  months:6,   free:false},
+    {v:"12m", l:"1 año",    months:12,  free:false},
+    {v:"custom", l:"Custom 📅", months:0, free:false},
+  ].filter(p => {
+    // Free only sees 3d and 1m
+    if (planId === "free") return p.free || p.v === "custom";
+    // Growth sees up to 6m + custom
+    if (planId === "growth") return p.months <= 6;
+    // Pro sees all
+    return true;
+  });
+
+  pillsRow.innerHTML = "";
+  let activeVal = planId === "free" ? "3d" : planId === "growth" ? "6m" : "12m";
+  hiddenInp.value   = activeVal;
+
+  presets.forEach(p => {
+    const locked = p.v !== "custom" && !p.free && p.months > maxMonths;
+    const btn    = document.createElement("button");
+    btn.type      = "button";
+    btn.className = "period-pill" + (p.v === activeVal ? " on" : "") + (locked ? " locked" : "");
+    btn.textContent = locked ? p.l + " 🔒" : p.l;
+    btn.title       = locked ? "Disponible en plan superior" : "";
+
+    btn.onclick = () => {
+      if (locked) { goToPricing(); return; }
+      // Deactivate all
+      pillsRow.querySelectorAll(".period-pill").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+
+      if (p.v === "custom") {
+        customRow.style.display = "flex";
+        hiddenInp.value = "custom";
+        // Set default range
+        const fromDef = new Date(now.getFullYear(), now.getMonth() - Math.min(1, maxMonths), now.getDate());
+        document.getElementById("date-from").value = fromDef.toISOString().split("T")[0];
+        document.getElementById("date-from").max   = maxDate;
+        document.getElementById("date-to").value   = maxDate;
+        document.getElementById("date-to").max     = maxDate;
+        // Min date based on plan
+        const minDate = new Date(now.getFullYear(), now.getMonth() - maxMonths, now.getDate()).toISOString().split("T")[0];
+        document.getElementById("date-from").min = minDate;
+        document.getElementById("date-to").min   = minDate;
+        document.getElementById("custom-limit-note").textContent = "Máx. " + maxMonths + (maxMonths === 1 ? " mes" : " meses");
+        // Sync hidden on change
+        const sync = () => {
+          const f = document.getElementById("date-from").value;
+          const t = document.getElementById("date-to").value;
+          if (f && t) hiddenInp.value = f + "|" + t;
+        };
+        document.getElementById("date-from").onchange = sync;
+        document.getElementById("date-to").onchange   = sync;
+        sync();
+      } else {
+        customRow.style.display = "none";
+        hiddenInp.value = p.v;
+      }
+    };
+    pillsRow.appendChild(btn);
+  });
+}
+
 window.goToPricing = () => window.showScreen("pricing");
 window.goBack = () => window.showScreen("app");
 
@@ -996,16 +1094,8 @@ function renderPlanUI() {
   document.getElementById("solo-block").style.display    = plan.compare ? "none"  : "block";
   document.getElementById("upgrade-note").style.display  = plan.compare ? "none"  : "flex";
 
-  // Period select — built from PLAN_CONFIG, no dynamic manipulation
-  const sel = document.getElementById("in-period");
-  sel.innerHTML = "";
-  plan.periods.forEach((p, i) => {
-    const opt = document.createElement("option");
-    opt.value = p.v;
-    opt.textContent = p.l;
-    if (i === plan.periods.length - 1) opt.selected = true;
-    sel.appendChild(opt);
-  });
+  // Period pill picker
+  buildPeriodPicker(planId);
 
   // Examples
   const chipsEl = document.getElementById("chips");
@@ -1077,7 +1167,20 @@ window.startSearch = async () => {
   const planId = window._udata?.plan || "free";
   const plan   = PLAN_CONFIG[planId] || PLAN_CONFIG.free;
   const country = document.getElementById("in-country").value;
-  const period  = document.getElementById("in-period").value;
+  const periodRaw = document.getElementById("in-period").value;
+  let period = periodRaw;
+  let customPeriodLabel = null;
+
+  if (periodRaw && periodRaw.includes("|")) {
+    const [from, to] = periodRaw.split("|");
+    const diffDays = Math.round((new Date(to) - new Date(from)) / 86400000);
+    customPeriodLabel = diffDays <= 7 ? "la última semana"
+      : diffDays <= 31  ? "el último mes"
+      : diffDays <= 93  ? "los últimos 3 meses"
+      : diffDays <= 186 ? "los últimos 6 meses"
+      : "el último año";
+    customPeriodLabel += " (" + from + " al " + to + ")";
+  }
 
   const isCompare = plan.compare && document.getElementById("compare-block").style.display !== "none";
   const myBrand   = isCompare ? document.getElementById("in-my").value.trim()   : document.getElementById("in-solo").value.trim();
@@ -1104,12 +1207,12 @@ window.startSearch = async () => {
   renderSteps(steps, 0);
 
   try {
-    const myData = await callAI(myBrand, country, period, plan);
+    const myData = await callAI(myBrand, country, periodRaw, plan, customPeriodLabel);
     let compData = null, cmpData = null;
 
     if (isCompare && compBrand) {
       renderSteps(steps, 1);
-      compData = await callAI(compBrand, country, period, plan);
+      compData = await callAI(compBrand, country, periodRaw, plan, customPeriodLabel);
       renderSteps(steps, 2);
       cmpData  = await callComparison(myData, compData, country);
     }
@@ -1146,7 +1249,7 @@ function renderSteps(steps, active) {
 // ─────────────────────────────────────────
 // AI CALLS
 // ─────────────────────────────────────────
-async function callAI(name, countryCode, period, plan) {
+async function callAI(name, countryCode, period, plan, customPeriodLabel) {
   const country = COUNTRIES[countryCode] || countryCode;
   const periodLabel = PERIOD_LABELS[period] || period;
   const fullPrompt = plan.full;
@@ -1287,6 +1390,35 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     </svg>`;
   }
 
+  // ── SVG Pie/Donut chart for investment breakdown ──
+  function svgPie(segments, size=180) {
+    // segments: [{pct, color, label}]
+    const cx=size/2, cy=size/2, r=size*0.38, inner=size*0.24;
+    let angle = -Math.PI/2;
+    const total = segments.reduce((s,p)=>s+(p.pct||0),0)||1;
+    const paths = segments.map(seg => {
+      const slice  = (seg.pct/total) * 2 * Math.PI;
+      const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+      const x2=cx+r*Math.cos(angle+slice), y2=cy+r*Math.sin(angle+slice);
+      const ix1=cx+inner*Math.cos(angle), iy1=cy+inner*Math.sin(angle);
+      const ix2=cx+inner*Math.cos(angle+slice), iy2=cy+inner*Math.sin(angle+slice);
+      const large = slice > Math.PI ? 1 : 0;
+      const d = `M${ix1},${iy1} L${x1},${y1} A${r},${r},0,${large},1,${x2},${y2} L${ix2},${iy2} A${inner},${inner},0,${large},0,${ix1},${iy1} Z`;
+      // Label position
+      const midA = angle + slice/2;
+      const lx=cx+(r+14)*Math.cos(midA), ly=cy+(r+14)*Math.sin(midA);
+      const anchor = Math.cos(midA) > 0.1 ? "start" : Math.cos(midA) < -0.1 ? "end" : "middle";
+      const result = {path:`<path d="${d}" fill="${seg.color}" opacity="0.9" stroke="#141720" stroke-width="2"><title>${seg.label}: ${seg.pct}%</title></path>`,
+        label: seg.pct >= 8 ? `<text x="${lx}" y="${ly+4}" text-anchor="${anchor}" fill="${seg.color}" font-size="9" font-weight="700" font-family="Open Sans,sans-serif">${seg.pct}%</text>` : ""};
+      angle += slice;
+      return result;
+    });
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      ${paths.map(p=>p.path).join("")}
+      ${paths.map(p=>p.label).join("")}
+    </svg>`;
+  }
+
   // ─── Color/info helpers ──────────────────────────────────────────
   function platC(n) {
     return {instagram:"#e1306c",facebook:"#1877f2",tiktok:"#69c9d0",youtube:"#f00","google ads":"#fbbc04",linkedin:"#0077b5",twitter:"#1da1f2",x:"#1da1f2",google:"#fbbc04"}[n?.toLowerCase()] || "#4f7fff";
@@ -1418,24 +1550,31 @@ function renderResults(my, comp, cmp, plan, country, periodLabel) {
     ${insightBox("📍","¿Dónde pone su dinero?","Si ellos invierten fuerte en Instagram y tú no estás, estás perdiendo terreno. El gráfico muestra el peso de cada plataforma.")}
 
     ${card(`
-      ${(my.inversion||[]).map(p=>{
-        const c=platC(p.plataforma);
-        const tc2=p.tendencia==="subiendo"?"#3ecf8e":p.tendencia==="bajando"?"#f56565":"#c8a96e";
-        return `<div style="margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="width:10px;height:10px;border-radius:50%;background:${c}"></div>
-              <span style="font-size:13px;font-weight:600">${p.plataforma}</span>
-              ${badge(p.tipo, p.tipo==="pagado"?"#f56565":"#3ecf8e")}
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:11px;color:${tc2}">${p.tendencia==="subiendo"?"↑":p.tendencia==="bajando"?"↓":"→"} ${p.tendencia}</span>
-              <span style="font-size:16px;font-weight:800;color:${c}">${p.pct}%</span>
-            </div>
-          </div>
-          ${svgBar(p.pct,c,10)}
-        </div>`;
-      }).join("")}
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex-shrink:0">
+          ${svgPie((my.inversion||[]).map(p=>({pct:p.pct,color:platC(p.plataforma),label:p.plataforma})),180)}
+        </div>
+        <div style="flex:1;min-width:180px">
+          ${(my.inversion||[]).map(p=>{
+            const c=platC(p.plataforma);
+            const tc2=p.tendencia==="subiendo"?"#3ecf8e":p.tendencia==="bajando"?"#f56565":"#c8a96e";
+            return `<div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="width:9px;height:9px;border-radius:50%;background:${c}"></div>
+                  <span style="font-size:12px;font-weight:600">${p.plataforma}</span>
+                  ${badge(p.tipo, p.tipo==="pagado"?"#f56565":"#3ecf8e")}
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:10px;color:${tc2}">${p.tendencia==="subiendo"?"↑":p.tendencia==="bajando"?"↓":"→"}</span>
+                  <span style="font-size:14px;font-weight:800;color:${c}">${p.pct}%</span>
+                </div>
+              </div>
+              ${svgBar(p.pct,c,8)}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>
     `, {title:"Inversión estimada por plataforma"})}
 
     ${card(`
