@@ -10,31 +10,33 @@ export async function onRequestPost(context) {
   if (request.method === "OPTIONS") return new Response(null, { headers: h });
 
   try {
-    const body = await request.json();
+    const body   = await request.json();
     const prompt = body.messages?.[0]?.content || "";
-    const key = env.GEMINI_KEY;
+    const key    = env.GROQ_KEY;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
-        }),
-      }
-    );
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 8192,
+      }),
+    });
 
     const data = await res.json();
 
     if (!res.ok) {
-      return new Response(JSON.stringify({ error: { message: data.error?.message || "Error Gemini" } }), { status: res.status, headers: h });
+      return new Response(JSON.stringify({ error: { message: data.error?.message || "Error Groq" } }), { status: res.status, headers: h });
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text = data.choices?.[0]?.message?.content || "";
 
-    // Return in Anthropic-compatible format so frontend works without changes
+    // Anthropic-compatible format so frontend works without changes
     return new Response(JSON.stringify({
       content: [{ type: "text", text }]
     }), { headers: h });
@@ -47,7 +49,7 @@ export async function onRequestPost(context) {
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
