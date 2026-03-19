@@ -13,11 +13,13 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
 
-    // Extract the user message from Anthropic format
+    // Extraer el mensaje del usuario del formato Anthropic
     const userMsg = body.messages?.find(m => m.role === "user")?.content || "";
 
-    const GEMINI_KEY = env.GEMINI_KEY || "AIzaSyD2i2npM4gNVglnK_n_1wPsNdwmQGTNB8c";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+    const GEMINI_KEY = env.GEMINI_KEY || "TU_KEY_AQUI";
+    
+    // CAMBIO AQUÍ: Usamos /v1/ y nos aseguramos de que el nombre del modelo sea correcto
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
     const geminiBody = {
       contents: [{
@@ -26,11 +28,12 @@ export async function onRequestPost(context) {
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 8192,
-        responseMimeType: "text/plain"
+        // Eliminamos responseMimeType a menos que sea estrictamente necesario, 
+        // a veces causa conflictos en llamadas simples
       }
     };
 
-    const res  = await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(geminiBody),
@@ -40,15 +43,22 @@ export async function onRequestPost(context) {
 
     if (!res.ok) {
       return new Response(JSON.stringify({
-        error: { message: data.error?.message || "Error Gemini " + res.status }
+        error: { message: data.error?.message || "Error en Gemini API: " + res.status }
       }), { status: res.status, headers: h });
     }
 
-    // Convert Gemini response to Anthropic format (what the frontend expects)
+    // Convertir respuesta de Gemini al formato Anthropic que espera tu frontend
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
     const anthropicFormat = {
-      content: [{ type: "text", text }],
-      stop_reason: "end_turn"
+      id: `msg_${Date.now()}`,
+      type: "message",
+      role: "assistant",
+      model: "gemini-1.5-flash",
+      content: [{ type: "text", text: text }],
+      stop_reason: "end_turn",
+      stop_sequence: null,
+      usage: { input_tokens: 0, output_tokens: 0 } // Gemini entrega esto, podrías mapearlo si quieres
     };
 
     return new Response(JSON.stringify(anthropicFormat), { headers: h });
@@ -61,7 +71,7 @@ export async function onRequestPost(context) {
 export async function onRequestOptions() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin":  "*",
+      "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
